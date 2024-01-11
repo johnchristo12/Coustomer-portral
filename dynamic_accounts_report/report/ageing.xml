@@ -1,46 +1,162 @@
 <odoo>
     <template id="dynamic_accounts_report.partner_ageing">
+        <t t-set="data_report_landscape" t-value="True"/>
+        <t t-set="full_width" t-value="True"/>
         <t t-call="web.html_container">
-            <t t-set="data_report_margin_top" t-value="12"/>
-            <t t-set="data_report_header_spacing" t-value="9"/>
-            <t t-set="data_report_dpi" t-value="110"/>
-            <t t-call="web.internal_layout">
+            <t t-call="web.external_layout">
                 <div class="page">
-                    <div class="oe_structure"/>
+                    <strong><p style="text-align: center;">Partner Aging</p></strong>
+                    <div id="informations" class="row mt32 mb32">
+                        <div class="col-auto col-3 mw-100 mb-2" name="target_move" style="font-size: 12px;">
+                            <strong>Target move:</strong>
+                             <span t-esc="Filters['target_move']"/>
+                        </div>
+                        <div class="col-auto col-3 mw-100 mb-2" name="account_type" style="font-size: 12px;">
+                            <strong>Account Type:</strong>
+                             <span t-esc="Filters['result_selection']"/>
+                        </div>
+                        <div class="col-auto col-3 mw-100 mb-2" name="partners" style="font-size: 12px;">
+                            <strong>Partners:</strong>
+                             <span t-esc="Filters['partners']"/>
+                        </div>
+                        <div class="col-auto col-3 mw-100 mb-2" name="partner_tag" style="font-size: 12px;">
+                            <strong>Partner Tag :</strong>
+                             <span t-esc="Filters['partner_tags']"/>
+                        </div>
+                        <div class="col-auto col-3 mw-100 mb-2" name="ason_date" style="font-size: 12px;">
+                            <strong>As On Date :</strong>
+                             <span t-esc="Filters['date_from']" t-option='{"widget": "date"}'/>
+                        </div>
+                    </div>
+                    <t t-set="unall_total" t-value="0"/>
+                    <t t-set="total_30" t-value="0.00"/>
+                    <t t-set="total_60" t-value="0"/>
+                    <t t-set="total_90" t-value="0"/>
+                    <t t-set="total_120" t-value="0"/>
+                    <t t-set="total_180" t-value="0"/>
+                    <t t-set="total_365" t-value="0"/>
+                    <t t-set="plus_total_365" t-value="0"/>
+                    <t t-set="total_total" t-value="0"/>
+                    <table class="table table-sm o_main_table" name="invoice_line_table" style="font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th name="th_partner" class="text-left">Partner</th>
+                                <th name="th_unallocated" class="text-right">Unallocated</th>
+                                <th name="th_30" class="text-right">0-30</th>
+                                <th name="th_60" class="text-right">31-60</th>
+                                <th name="th_90" class="text-right">61-90</th>
+                                <th name="th_120" class="text-right">91-120</th>
+                                <th name="th_180" class="text-right">121-180</th>
+                                <th name="th_365" class="text-right">181-365</th>
+                                <th name="th_365_plus" class="text-right">365 +</th>
+                                <th name="th_total" class="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="account_data" t-as="account">
+                                <t t-set="unall_total" t-value="unall_total + account['unalloc']"/>
+                                <t t-set="total_30" t-value="total_30 + account.get('6', 0.00)"/>
+                                <t t-set="total_60" t-value="total_60 + account['5']"/>
+                                <t t-set="total_90" t-value="total_90 + account['4']"/>
+                                <t t-set="total_120" t-value="total_120 + account['3']"/>
+                                <t t-set="total_180" t-value="total_180 + account['2']"/>
+                                <t t-set="total_365" t-value="total_365 + account['1']"/>
+                                <t t-set="plus_total_365" t-value="plus_total_365 + account['0']"/>
+                                <t t-set="total_total" t-value="total_total + account['total']"/>
+                                <tr>
+                                    <td><span t-esc="account['name']"/></td>
+                                    <td class="text-right"><span t-esc="account['unalloc']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['6']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['5']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['4']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['3']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['2']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['1']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['0']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                    <td class="text-right"><span t-esc="account['total']" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                </tr>
+                            </t>
+                            <tr>
+                                <td><strong>Total :</strong></td>
+                                <td><strong><span t-esc="unall_total" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_30" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_60" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_90" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_120" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_180" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_365" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="plus_total_365" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                                <td class="text-right"><strong><span t-esc="total_total" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br/>
+                    <br/>
+                    <table class="table table-sm o_main_table" name="invoice_line_table" style="font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th style="text-align: right;">Amount</th>
+                                <th style="text-align: right;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="perc_30" t-value="(total_30 / (total_total - unall_total)) * 100.00"/>
+                            <t t-set="perc_60" t-value="(total_60 / (total_total - unall_total)) * 100.00"/>
+                            <t t-set="perc_90" t-value="(total_90 / (total_total - unall_total)) * 100.00"/>
+                            <t t-set="perc_120" t-value="(total_120 / (total_total - unall_total)) * 100.00"/>
+                            <t t-set="perc_180" t-value="(total_180 / (total_total - unall_total)) * 100.00"/>
+                            <t t-set="perc_365" t-value="(total_365 / (total_total - unall_total)) * 100.00"/>
+                            <t t-set="perc_365_plus" t-value="(plus_total_365 / (total_total - unall_total)) * 100.00"/>
+                            <tr>
+                                <td>0-30</td>
+                                <td class="text-right"><span t-esc="total_30" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_30" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                            <tr>
+                                <td>31-60</td>
+                                <td class="text-right"><span t-esc="total_60" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_60" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                            <tr>
+                                <td>61-90</td>
+                                <td class="text-right"><span t-esc="total_90" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_90" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                            <tr>
+                                <td>91-120</td>
+                                <td class="text-right"><span t-esc="total_120" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_120" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                            <tr>
+                                <td>121-180</td>
+                                <td class="text-right"><span t-esc="total_180" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_180" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                            <tr>
+                                <td>181-365</td>
+                                <td class="text-right"><span t-esc="total_365" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_365" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                            <tr>
+                                <td>365 +</td>
+                                <td class="text-right"><span t-esc="plus_total_365" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"><span t-esc="perc_365_plus" t-options="{'widget': 'float', 'precision': 2}"/>%</td>
+                            </tr>
+                             <tr>
+                                <td>Unallocated</td>
+                                <td class="text-right"><span t-esc="unall_total" t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/></td>
+                                <td class="text-right"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- <div class="oe_structure"/>
                     <h3 style="text-align:centre;left:50%;"><span t-esc="Filters.get('company_name')"/>: Partner Ageing
                     </h3>
                     <strong> As On Date:</strong>
                     <t t-esc="Filters['date_from']"/>
                     <div>
                         <div style="text-align:centre;left:50%;" class="row">
-                                <div class="col-3">
-                                    <strong>Target move:</strong>
-                                        <li>
-                                            <t t-esc="Filters['target_move']"/>
-                                        </li>
-                                </div>
-                                <div class="col-3">
-                                    <strong>Account Type:</strong>
-                                        <li>
-                                            <t t-esc="Filters['result_selection']"/>
-                                        </li>
-                                </div>
-                                 <div class="col-3" style="">
-                                    <strong>Partners :</strong>
-                                    <t t-foreach="Filters['partners']" t-as="pa">
-                                        <li>
-                                            <t t-esc="pa"/>
-                                        </li>
-                                    </t>
-                                </div>
-                                 <div class="col-3" style="">
-                                    <strong>Partner Tag :</strong>
-                                    <t t-foreach="Filters['partner_tags']" t-as="pt">
-                                        <li>
-                                            <t t-esc="pt"/>
-                                        </li>
-                                    </t>
-                                </div>
                         </div>
 
 
@@ -151,7 +267,7 @@
                         </tbody>
                     </table>
                     </div>
-                    <br></br>
+                    <br></br> -->
                 </div>
             </t>
         </t>

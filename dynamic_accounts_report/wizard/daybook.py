@@ -1,24 +1,3 @@
-# -*- coding: utf-8 -*-
-#############################################################################
-#
-#    Cybrosys Technologies Pvt. Ltd.
-#
-#    Copyright (C) 2021-TODAY Cybrosys Technologies(<https://www.cybrosys.com>)
-#    Author: Cybrosys Techno Solutions(<https://www.cybrosys.com>)
-#
-#    You can modify it under the terms of the GNU LESSER
-#    GENERAL PUBLIC LICENSE (LGPL v3), Version 3.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU LESSER GENERAL PUBLIC LICENSE (LGPL v3) for more details.
-#
-#    You should have received a copy of the GNU LESSER GENERAL PUBLIC LICENSE
-#    (LGPL v3) along with this program.
-#    If not, see <http://www.gnu.org/licenses/>.
-#
-#############################################################################
 import time
 from datetime import date
 from datetime import timedelta, datetime
@@ -110,45 +89,25 @@ class AgeingView(models.TransientModel):
     def get_filter_data(self, option):
         r = self.env['account.day.book'].search([('id', '=', option[0])])
         default_filters = {}
-        company_id = self.env.companies
-        company_domain = [('company_id', 'in', company_id.ids)]
-        # journals = self.journal_ids if self.journal_ids else self.env[
-        #     'account.journal'].search(company_domain)
-        # accounts = self.account_ids if self.account_ids else self.env[
-        #     'account.account'].search(company_domain)
-
-        journal_ids = self.journal_ids if self.journal_ids else self.env['account.journal'].search(company_domain, order="company_id, name")
-        accounts_ids = self.account_ids if self.account_ids else self.env['account.account'].search(company_domain, order="company_id, name")
-        journals = []
-        o_company = False
-        for j in journal_ids:
-            if j.company_id != o_company:
-                journals.append(('divider', j.company_id.name))
-                o_company = j.company_id
-            journals.append((j.id, j.name, j.code))
-
-        accounts = []
-
-        o_company = False
-        for j in accounts_ids:
-            if j.company_id != o_company:
-                accounts.append(('divider', j.company_id.name))
-                o_company = j.company_id
-            accounts.append((j.id, j.name))
-
+        company_id = self.env.company
+        company_domain = [('company_id', '=', company_id.id)]
+        journals = self.journal_ids if self.journal_ids else self.env[
+            'account.journal'].search(company_domain)
+        accounts = self.account_ids if self.account_ids else self.env[
+            'account.account'].search(company_domain)
 
         filter_dict = {
             'journal_ids': self.journal_ids.ids,
             'account_ids': self.account_ids.ids,
-            'company_id': company_id.ids,
+            'company_id': company_id.id,
             'date_from': r.date_from,
             'date_to':r.date_to,
 
             'target_move': r.target_move,
-            'journals_list': journals,
-            'accounts_list': accounts,
+            'journals_list': [(j.id, j.name, j.code) for j in journals],
+            'accounts_list': [(a.id, a.name) for a in accounts],
 
-            'company_name': ', '.join(self.env.companies.mapped('name')),
+            'company_name': company_id and company_id.name,
         }
         filter_dict.update(default_filters)
         return filter_dict
@@ -176,7 +135,7 @@ class AgeingView(models.TransientModel):
         dates = []
         record = []
         for i in range(days.days + 1):
-            dates.append(date_start + timedelta(days=i))
+            dates.append((date_start + timedelta(days=i)).strftime("%d/%m/%Y"))
         for head in dates:
             pass_date = str(head)
             accounts_res = self._get_account_move_entry(
@@ -222,15 +181,12 @@ class AgeingView(models.TransientModel):
         move_line = self.env['account.move.line']
         tables, where_clause, where_params = move_line._query_get()
         wheres = [""]
-        companies = self.env.companies.ids
-        companies.append(0)
-        target_move = "AND l.company_id in %s" % str(tuple(companies))
         if where_clause.strip():
             wheres.append(where_clause.strip())
         if form_data['target_move'] == 'posted':
-            target_move += " AND m.state = 'posted'"
+            target_move = "AND m.state = 'posted'"
         else:
-            target_move += """AND m.state in ('draft','posted') """
+            target_move = ''
         sql = ('''
                 SELECT l.id AS lid,m.id AS move_id, acc.name as accname, l.account_id AS account_id, l.date AS ldate, j.code AS lcode, l.currency_id, 
                 l.amount_currency, l.ref AS lref, l.name AS lname, COALESCE(l.debit,0) AS debit, COALESCE(l.credit,0) AS credit, 
@@ -248,7 +204,7 @@ class AgeingView(models.TransientModel):
                      ORDER BY l.date DESC
         ''')
         params = (
-        tuple(accounts.ids), tuple(journals.ids), pass_date)
+        tuple(accounts.ids), tuple(journals.ids), datetime.strptime(pass_date, '%d/%m/%Y'))
         cr.execute(sql, params)
         data = cr.dictfetchall()
 
@@ -256,6 +212,9 @@ class AgeingView(models.TransientModel):
         debit = credit = balance = 0.00
         id = ''
         for line in data:
+            l_date = line['ldate']
+            l_date = l_date.strftime("%d/%m/%Y")
+            line['ldate'] = l_date
             debit += line['debit']
             credit += line['credit']
             balance += line['balance']
@@ -288,21 +247,21 @@ class AgeingView(models.TransientModel):
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         sheet = workbook.add_worksheet()
         head = workbook.add_format({'align': 'center', 'bold': True,
-                                    'font_size': '20px'})
+                                    'font_size': 20})
         sub_heading = workbook.add_format(
-            {'align': 'center', 'bold': True, 'font_size': '10px',
+            {'align': 'center', 'bold': True, 'font_size': 10,
              'border': 1,
              'border_color': 'black'})
-        txt = workbook.add_format({'font_size': '10px', 'border': 1})
+        txt = workbook.add_format({'font_size': 10, 'border': 1})
         txt_l = workbook.add_format(
-            {'font_size': '10px', 'border': 1, 'bold': True})
+            {'font_size': 10, 'border': 1, 'bold': True})
         sheet.merge_range('A2:D3',
                           filters.get('company_name') + ':' + ' Day Book',
                           head)
         date_head = workbook.add_format({'align': 'center', 'bold': True,
-                                         'font_size': '10px'})
+                                         'font_size': 10})
         date_style = workbook.add_format({'align': 'center',
-                                          'font_size': '10px'})
+                                          'font_size': 10})
         if filters.get('date_from'):
             sheet.merge_range('A4:B4', 'From: ' + filters.get('date_from'),
                               date_head)

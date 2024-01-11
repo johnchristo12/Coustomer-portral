@@ -6,11 +6,9 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
     var rpc = require('web.rpc');
     var session = require('web.session');
     var utils = require('web.utils');
+    var round_di = utils.round_decimals;
     var QWeb = core.qweb;
     var _t = core._t;
-
-    var datepicker = require('web.datepicker');
-    var time = require('web.time');
 
     window.click_num = 0;
     var PartnerLedger = AbstractAction.extend({
@@ -23,8 +21,6 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
             'click #xlsx': 'print_xlsx',
             'click .pl-line': 'show_drop_down',
             'click .view-account-move': 'view_acc_move',
-                        'mousedown div.input-group.date[data-target-input="nearest"]': '_onCalendarIconClick',
-
 
         },
 
@@ -48,35 +44,6 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                 self.load_data(self.initial_render);
             })
         },
-
-        _onCalendarIconClick: function (ev) {
-        var $calendarInputGroup = $(ev.currentTarget);
-
-        var calendarOptions = {
-
-        minDate: moment({ y: 1000 }),
-            maxDate: moment().add(200, 'y'),
-            calendarWeeks: true,
-            defaultDate: moment().format(),
-            sideBySide: true,
-            buttons: {
-                showClear: true,
-                showClose: true,
-                showToday: true,
-            },
-
-            icons : {
-                date: 'fa fa-calendar',
-
-            },
-            locale : moment.locale(),
-            format : time.getLangDateFormat(),
-             widgetParent: 'body',
-             allowInputToggle: true,
-        };
-
-        $calendarInputGroup.datetimepicker(calendarOptions);
-    },
 
         load_data: function (initial_render = true) {
             var self = this;
@@ -111,9 +78,61 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                             self.$el.find('.account').select2({
                                 placeholder: ' Accounts...',
                             });
-                            self.$el.find('.partners').select2({
+                            self._rpc({
+                                    model: 'account.partner.ledger',
+                                    method: 'get_partners',
+                                    //args: [[this.wizard_id]],
+                                }).then(function(datas) {
+                                    self.$el.find('.partners').select2({
+                                        placeholder: 'Partners...',
+                                        multiple: true,
+                                        data: datas,
+                                        query: function(q) {
+                                                  var pageSize,
+                                                    results,
+                                                    that = this;
+                                                  pageSize = 20; // or whatever pagesize
+                                                  results = [];
+                                                  if (q.term && q.term !== '') {
+                                                    // HEADS UP; for the _.filter function i use underscore (actually lo-dash) here
+                                                    results = _.filter(that.data, function(e) {
+                                                      return e.text.toUpperCase().indexOf(q.term.toUpperCase()) >= 0;
+                                                    });
+                                                  } else if (q.term === '') {
+                                                    results = that.data;
+                                                  }
+                                                  q.callback({
+                                                    results: results.slice((q.page - 1) * pageSize, q.page * pageSize),
+                                                    more: results.length >= q.page * pageSize,
+                                                  });
+                                                },
+                                        /*query: function(q) {
+                                            alert(q);
+                                            },*/
+                                });
+                                });
+                            /*self.$el.find('.partners').select2({
                             placeholder: 'Partners...',
-                            });
+                            query: function(q) {
+                                  var pageSize,
+                                    results,
+                                    that = this;
+                                  pageSize = 20; // or whatever pagesize
+                                  results = [];
+                                  if (q.term && q.term !== '') {
+                                    // HEADS UP; for the _.filter function i use underscore (actually lo-dash) here
+                                    results = _.filter(that.data, function(e) {
+                                      return e.text.toUpperCase().indexOf(q.term.toUpperCase()) >= 0;
+                                    });
+                                  } else if (q.term === '') {
+                                    results = that.data;
+                                  }
+                                  q.callback({
+                                    results: results.slice((q.page - 1) * pageSize, q.page * pageSize),
+                                    more: results.length >= q.page * pageSize,
+                                  });
+                                },
+                            });*/
                             self.$el.find('.reconciled').select2({
                             placeholder: 'Reconciled status...',
                             });
@@ -148,17 +167,27 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                     }
             },
 
-
-
+                
             format_currency: function(currency, amount) {
-                if (typeof(amount) != 'number') {
-                    amount = parseFloat(amount);
-                }
-                var formatted_value = (parseInt(amount)).toLocaleString(currency[2],{
-                    minimumFractionDigits: 2
-                })
-                return formatted_value
-            },
+            return this.format_currency_no_symbol(amount, currency[3], currency);
+    
+            /*if (currency[1] === 'after') {
+                return amount + ' ' + (currency[0] || '');
+            } else {
+                return (currency[0] || '') + ' ' + amount;
+            }*/
+        },
+    
+        format_currency_no_symbol: function(amount, decimals, currency) {
+            if (typeof amount === 'number') {
+                amount = round_di(amount, decimals).toFixed(decimals);
+                amount = field_utils.format.float(round_di(amount, decimals), {
+                    digits: [69, decimals],
+                });
+            }
+    
+            return amount;
+        },
 
             print_pdf: function(e) {
             e.preventDefault();
@@ -180,6 +209,7 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                     },
                     'context': {
                         'active_model': 'account.partner.ledger',
+                        'active_id': self.wizard_id,
                         'landscape': 1,
                         'partner_ledger_pdf_report': true
                     },
@@ -200,7 +230,6 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                     [self.wizard_id]
                 ],
             }).then(function(data) {
-            console.log(data['report_lines'])
                 var action = {
                     'type': 'ir_actions_dynamic_xlsx_download',
                     'data': {
@@ -210,6 +239,7 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                          'report_data': JSON.stringify(data['report_lines']),
                          'report_name': 'Partner Ledger',
                          'dfr_data': JSON.stringify(data),
+                         'wiz_id': self.wizard_id
                     },
                 };
                 return self.do_action(action);
@@ -242,35 +272,32 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
             if (td.length == 1) {
                    self._rpc({
                         model: 'account.partner.ledger',
-                        method: 'view_report',
-                        args: [
-                            [self.wizard_id]
-                        ],
+                        method: 'view_report_details',
+                        args: [[self.wizard_id],account_id],
                     }).then(function(data) {
                      _.each(data['report_lines'], function(rep_lines) {
-                            _.each(rep_lines['move_lines'], function(move_line) {
-
-                             move_line.debit = self.format_currency(data['currency'],move_line.debit);
-                            move_line.credit = self.format_currency(data['currency'],move_line.credit);
-                            move_line.balance = self.format_currency(data['currency'],move_line.balance);
-
-
+                            rep_lines.debit = self.format_currency(data['currency'],rep_lines.debit);
+                            rep_lines.credit = self.format_currency(data['currency'],rep_lines.credit);
+                            rep_lines.balance = self.format_currency(data['currency'],rep_lines.balance);
                              });
-                             });
-                    for (var i = 0; i < data['report_lines'].length; i++) {
+                             $(event.currentTarget).next('tr').find('td ul').after(
+                                QWeb.render('SubSectionPL', {
+                                    account_data: data['report_lines'],
+                                }))
+                    /*for (var i = 0; i < data['report_lines'].length; i++) {
 
                         if (account_id == data['report_lines'][i]['id'] ){
                             $(event.currentTarget).next('tr').find('td .pl-table-div').remove();
                             $(event.currentTarget).next('tr').find('td ul').after(
                                 QWeb.render('SubSectionPL', {
-                                    account_data: data['report_lines'][i]['move_lines'],
+                                    account_data: data['report_lines'][i],
                                 }))
                             $(event.currentTarget).next('tr').find('td ul li:first a').css({
                                 'background-color': '#00ede8',
                                 'font-weight': 'bold',
                                 });
                              }
-                        }
+                        }*/
                     });
             }
         },
@@ -311,12 +338,22 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
                     }
                 });
         },
-
+        
+        
         apply_filter: function(event) {
             event.preventDefault();
             var self = this;
             self.initial_render = false;
-            var filter_data_selected = {};
+            var filter_data_selected = {
+                'account_ids': [],
+                'journal_ids': [],
+                'partner_ids': [],
+                'account_type_ids': [],
+                'partner_category_ids': [],
+                'date_from': '',
+                'date_to': '',
+                'target_move': 'posted'
+            };
 
             var account_ids = [];
             var account_text = [];
@@ -363,14 +400,17 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
             var span_res = document.getElementById("partner_res")
             var partner_list = $(".partners").select2('data')
             for (var i = 0; i < partner_list.length; i++) {
-            if(partner_list[i].element[0].selected === true)
+                partner_ids.push(parseInt(partner_list[i].id));
+                partner_text.push(partner_list[i].text);
+                span_res.value = partner_text;
+                span_res.innerHTML=span_res.value;
+            /*if(partner_list[i].element[0].selected === true)
             {partner_ids.push(parseInt(partner_list[i].id))
             if(partner_text.includes(partner_list[i].text) === false)
             {partner_text.push(partner_list[i].text)
             }
-            span_res.value = partner_text
-            span_res.innerHTML=span_res.value;
-            }
+            
+            }*/
             }
             if (partner_list.length == 0){
             span_res.value = ""
@@ -418,21 +458,13 @@ odoo.define('dynamic_accounts_report.partner_ledger', function (require) {
             }
             filter_data_selected.partner_category_ids = partner_category_ids
 
-//            if ($("#date_from").val()) {
-//                var dateString = $("#date_from").val();
-//                filter_data_selected.date_from = dateString;
-//            }
-//            if ($("#date_to").val()) {
-//                var dateString = $("#date_to").val();
-//                filter_data_selected.date_to = dateString;
-//            }
-
-if (this.$el.find('.datetimepicker-input[name="date_from"]').val()) {
-                filter_data_selected.date_from = moment(this.$el.find('.datetimepicker-input[name="date_from"]').val(), time.getLangDateFormat()).locale('en').format('YYYY-MM-DD');
+            if ($("#date_from").val()) {
+                var dateString = $("#date_from").val();
+                filter_data_selected.date_from = dateString;
             }
-
-            if (this.$el.find('.datetimepicker-input[name="date_to"]').val()) {
-                filter_data_selected.date_to = moment(this.$el.find('.datetimepicker-input[name="date_to"]').val(), time.getLangDateFormat()).locale('en').format('YYYY-MM-DD');
+            if ($("#date_to").val()) {
+                var dateString = $("#date_to").val();
+                filter_data_selected.date_to = dateString;
             }
 
             if ($(".reconciled").length){
@@ -448,7 +480,10 @@ if (this.$el.find('.datetimepicker-input[name="date_from"]').val()) {
 
             if ($(".target_move").length) {
             var post_res = document.getElementById("post_res")
-            filter_data_selected.target_move = $(".target_move")[1].value
+            var target_move = $(".target_move")[1].value
+            if (target_move == 'posted'){
+                filter_data_selected.target_move = target_move
+            }
             post_res.value = $(".target_move")[1].value
                     post_res.innerHTML=post_res.value;
               if ($(".target_move")[1].value == "") {
@@ -456,6 +491,7 @@ if (this.$el.find('.datetimepicker-input[name="date_from"]').val()) {
 
               }
             }
+            console.log(filter_data_selected)
             rpc.query({
                 model: 'account.partner.ledger',
                 method: 'write',

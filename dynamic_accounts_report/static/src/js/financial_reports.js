@@ -6,6 +6,7 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
     var rpc = require('web.rpc');
     var session = require('web.session');
     var utils = require('web.utils');
+    var round_di = utils.round_decimals;
     var QWeb = core.qweb;
     var _t = core._t;
 
@@ -22,8 +23,7 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
             'click #pdf': 'print_pdf',
             'click #xlsx': 'print_xlsx',
             'click .show-gl': 'show_gl',
-                        'mousedown div.input-group.date[data-target-input="nearest"]': '_onCalendarIconClick',
-
+            'mousedown div.input-group.date[data-target-input="nearest"]': '_onCalendarIconClick',
         },
 
         init: function(parent, action) {
@@ -84,9 +84,29 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
                     self._rpc({
                         model: 'dynamic.balance.sheet.report',
                         method: 'view_report',
-                        args: [[this.wizard_id], action_title],
+                        args: [[this.wizard_id], action_title, self.searchModel.config.context.lang],
                     }).then(function(datas) {
+                        _.each(datas['bs_lines'], function(rep_lines) {
+                            rep_lines.debit = self.format_currency(datas['currency'],datas['factor'],rep_lines.debit);
+                            rep_lines.credit = self.format_currency(datas['currency'],datas['factor'],rep_lines.credit);
+                            rep_lines.balance = self.format_currency(datas['currency'],datas['factor'],rep_lines.balance);
+                            rep_lines.debit_comp = self.format_currency(datas['currency'],datas['factor'],rep_lines.debit_comp);
+                            rep_lines.credit_comp = self.format_currency(datas['currency'],datas['factor'],rep_lines.credit_comp);
+                            rep_lines.balance_comp = self.format_currency(datas['currency'],datas['factor'],rep_lines.balance_comp);
+                            _.each(rep_lines['child_lines'], function(ch_lines) {
+                                ch_lines.debit = self.format_currency(datas['currency'],datas['factor'],ch_lines.debit);
+                                ch_lines.credit = self.format_currency(datas['currency'],datas['factor'],ch_lines.credit);
+                                ch_lines.balance = self.format_currency(datas['currency'],datas['factor'],ch_lines.balance);
+                                ch_lines.debit_comp = self.format_currency(datas['currency'],datas['factor'],ch_lines.debit_comp);
+                                ch_lines.credit_comp = self.format_currency(datas['currency'],datas['factor'],ch_lines.credit_comp);
+                                ch_lines.balance_comp = self.format_currency(datas['currency'],datas['factor'],ch_lines.balance_comp);
+                                });
 
+
+
+
+                            });
+                            console.log(datas)
                             if (initial_render) {
                                     self.$('.filter_view_dfr').html(QWeb.render('DfrFilterView', {
                                         filter_data: datas['filters'],
@@ -122,6 +142,7 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
                                             debit_total : datas['debit_total'],
                                             debit_balance : datas['debit_balance'],
                                             bs_lines : datas['bs_lines'],
+                                            has_comp: datas['has_comp']
                                         }));
                 });
                     }
@@ -130,15 +151,27 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
                     }
             },
 
-    format_currency: function(currency, amount) {
-                if (typeof(amount) != 'number') {
-                    amount = parseFloat(amount);
-                }
-                var formatted_value = (parseInt(amount)).toLocaleString(currency[2],{
-                    minimumFractionDigits: 2
-                })
-                return formatted_value
-            },
+    
+    format_currency: function(currency, factor, amount) {
+            return this.format_currency_no_symbol(amount, factor, currency);
+    
+            /*if (currency[1] === 'after') {
+                return amount + ' ' + (currency[0] || '');
+            } else {
+                return (currency[0] || '') + ' ' + amount;
+            }*/
+        },
+    
+        format_currency_no_symbol: function(amount, decimals, currency) {
+            if (typeof amount === 'number') {
+                amount = round_di(amount, decimals).toFixed(decimals);
+                amount = field_utils.format.float(round_di(amount, decimals), {
+                    digits: [69, decimals],
+                });
+            }
+    
+            return amount;
+        },
 
     show_gl: function(e) {
             var self = this;
@@ -165,7 +198,7 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
                 model: 'dynamic.balance.sheet.report',
                 method: 'view_report',
                 args: [
-                    [self.wizard_id], action_title
+                    [self.wizard_id], action_title,  self.searchModel.config.context.lang
                 ],
             }).then(function(data) {
                 var action = {
@@ -195,7 +228,7 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
                 model: 'dynamic.balance.sheet.report',
                 method: 'view_report',
                 args: [
-                    [self.wizard_id],  action_title
+                    [self.wizard_id],  action_title,  self.searchModel.config.context.lang
                 ],
             }).then(function(data) {
                 var action = {
@@ -306,28 +339,7 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
             }
             filter_data_selected.account_tag_ids = account_tag_ids
 
-            var analytic_ids = []
-            var analytic_text = [];
-            var analytic_res = document.getElementById("analytic_res")
-            var analytic_list = $(".analytics").select2('data')
-
-            for (var i = 0; i < analytic_list.length; i++) {
-                if(analytic_list[i].element[0].selected === true){
-
-                    analytic_ids.push(parseInt(analytic_list[i].id))
-                    if(analytic_text.includes(analytic_list[i].text) === false){
-                        analytic_text.push(analytic_list[i].text)
-                    }
-                    analytic_res.value = analytic_text
-                    analytic_res.innerHTML=analytic_res.value;
-                }
-            }
-            if (analytic_list.length == 0){
-               analytic_res.value = ""
-                    analytic_res.innerHTML="";
-
-            }
-            filter_data_selected.analytic_ids = analytic_ids
+            filter_data_selected.analytic_ids = []
 
             var analytic_tag_ids = [];
             var analytic_tag_text = [];
@@ -354,22 +366,39 @@ odoo.define('dynamic_accounts_report.financial_reports', function (require) {
             filter_data_selected.analytic_tag_ids = analytic_tag_ids
 
 
-//            if ($("#date_from").val()) {
-//                var dateString = $("#date_from").val();
-//                filter_data_selected.date_from = dateString;
-//            }
-//            if ($("#date_to").val()) {
-//                var dateString = $("#date_to").val();
-//                filter_data_selected.date_to = dateString;
-//            }
-
-if (this.$el.find('.datetimepicker-input[name="date_from"]').val()) {
+            if ($("#date_from").val()) {
+                var dateString = $("#date_from").val();
+                filter_data_selected.date_from = dateString;
+            }
+            if ($("#date_to").val()) {
+                var dateString = $("#date_to").val();
+                filter_data_selected.date_to = dateString;
+            }
+            
+            if ($("#date_from_comp").val()) {
+                var dateStringComp = $("#date_from_comp").val();
+                filter_data_selected.date_from_comp = dateStringComp;
+            }
+            if ($("#date_to_comp").val()) {
+                var dateStringComp = $("#date_to_comp").val();
+                filter_data_selected.date_to_comp = dateStringComp;
+            }
+            /*if (this.$el.find('.datetimepicker-input[name="date_from"]').val()) {
                 filter_data_selected.date_from = moment(this.$el.find('.datetimepicker-input[name="date_from"]').val(), time.getLangDateFormat()).locale('en').format('YYYY-MM-DD');
             }
 
             if (this.$el.find('.datetimepicker-input[name="date_to"]').val()) {
                 filter_data_selected.date_to = moment(this.$el.find('.datetimepicker-input[name="date_to"]').val(), time.getLangDateFormat()).locale('en').format('YYYY-MM-DD');
             }
+            
+            if (this.$el.find('.datetimepicker-input[name="date_from_comp"]').val()) {
+                alert("Came")
+                filter_data_selected.date_from_comp = moment(this.$el.find('.datetimepicker-input[name="date_from_comp"]').val(), time.getLangDateFormat()).locale('en').format('YYYY-MM-DD');
+            }
+
+            if (this.$el.find('.datetimepicker-input[name="date_to_comp"]').val()) {
+                filter_data_selected.date_to_comp = moment(this.$el.find('.datetimepicker-input[name="date_to_comp"]').val(), time.getLangDateFormat()).locale('en').format('YYYY-MM-DD');
+            }*/
 
             if ($(".target_move").length) {
                 var post_res = document.getElementById("post_res")
@@ -381,6 +410,7 @@ if (this.$el.find('.datetimepicker-input[name="date_from"]').val()) {
 
                   }
             }
+
             rpc.query({
                 model: 'dynamic.balance.sheet.report',
                 method: 'write',

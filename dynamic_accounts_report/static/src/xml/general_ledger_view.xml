@@ -134,54 +134,47 @@
                 </h1>
 
             </div>
-        <div class="row" style="margin-right: 10px; margin-left: 10px;">
-            <div class="sub_container_left" style="width:70%;">
+        <div class="" style="position: relative;">
+            <div class="sub_container_left">
                 <div class="report_print">
                     <button type="button" class="btn btn-primary" id="pdf"
-                            style="position: relative;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
+                            style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
                         Print (PDF)
                     </button>
                     <button type="button" class="btn btn-primary" id="xlsx"
-                            style="position: relative;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
+                            style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
                         Export (XLSX)
                     </button>
                 </div>
             </div>
             <br></br>
-            <div class="sub_container_right row" style="width:30%;height:3%;top:0px;position: relative;">
+            <div class="sub_container_right" style="width:50%;height:3%;right:0px;top:0px;position: absolute;">
+                  <div class="" style="right:80x;">
 
+                    <br></br>
+                    <div class="row" style="right:80px;top:0px;position: absolute;width:50;">
                         <div class="time_range" style="">
-                            <a type="button" class="dropdown-toggle" data-toggle="dropdown" >
+                            <a type="button" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-calendar" title="Dates" role="img" aria-label="Dates"></span>
                                 Date Range
                             </a>
                             <div class="dropdown-menu" role="menu">
-                                <div class="form-group">
-                                    <label class="" for="gen_date_from">Start Date :</label>
-                                        <div class="input-group date" id="gen_date_from" data-target-input="nearest">
-                                            <input type="text" name="gen_date_from" class="form-control datetimepicker-input" data-target="#gen_date_from" t-att-name="prefix"/>
-                                            <div class="input-group-append" data-target="#gen_date_from" data-toggle="datetimepicker">
-                                                <span class="input-group-text">
-                                                    <span class="fa fa-calendar" role="img" aria-label="Calendar"></span>
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                    <label class="" for="gen_date_to">End Date :</label>
-                                    <div class="input-group date" id="gen_date_to" data-target-input="nearest">
-
-                                        <input type="text" name="gen_date_to" class="form-control datetimepicker-input" data-target="#gen_date_to" t-att-name="prefix"/>
-                                        <div class="input-group-append" data-target="#gen_date_to" data-toggle="datetimepicker">
-                                            <span class="input-group-text">
-                                                <span class="fa fa-calendar" role="img" aria-label="Calendar"></span>
-                                            </span>
+                                <div class="">
+                                    <label class="" for="date_from">Start Date :</label>
+                                    <div class="">
+                                        <div class="" aria-atomic="true" id="">
+                                            <input type="date" id="date_from"></input>
                                         </div>
                                     </div>
-
+                                    <label class="" for="date_to">End Date :</label>
+                                    <div class="">
+                                        <div class="" aria-atomic="true" id="">
+                                            <input type="date" id="date_to"></input>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <t t-if="title == 'General Ledger'">
                         <div class="journals_filter" style="">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
                                 <span class="fa fa-book"></span>
@@ -190,29 +183,13 @@
                             <select class="dropdown-menu  journals" name="states[]" multiple="multiple">
                                 <div role="separator" class="dropdown-divider"></div>
                                 <t t-foreach="filter_data.journals_list" t-as="journal">
-
-                                    <t t-if="journal[0]=='divider'">
-                                            <div role="separator" class="dropdown-divider"/>
-
-                                         <option disabled="disabled" role="menuitem" t-attf-value="{{journal[0]}}">
-                                            <t t-esc="journal[1]"/>
-                                        </option>
-                                            <div role="separator" class="dropdown-divider"/>
-                                     </t>
-
-
-                                    <t t-else="">
-
-
                                     <option t-attf-value="{{journal[0]}}">
                                         <t t-esc="journal[1]"/>
                                     </option>
-                                    </t>
                                 </t>
                             </select>
                             <span id="journal_res"></span>
                         </div>
-                        </t>
 
                         <div class="accounts_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
@@ -221,30 +198,15 @@
                             </a>
                             <select class="dropdown-menu account" name="states[]" multiple="multiple">
                                 <t t-foreach="filter_data.accounts_list" t-as="account">
-
-                                    <t t-if="account[0]=='divider'">
-                                            <div role="separator" class="dropdown-divider"/>
-
-                                         <option disabled="disabled" role="menuitem" t-attf-value="{{account[0]}}">
-                                            <t t-esc="account[1]"/>
-                                        </option>
-                                            <div role="separator" class="dropdown-divider"/>
-                                     </t>
-
-
-                                    <t t-else="">
-
                                     <option t-attf-value="{{account[0]}}">
                                         <t t-esc="account[1]"/>
                                     </option>
-
-                                    </t>
                                 </t>
                             </select>
                             <span id="acc_res"></span>
                         </div>
 
-                        <div class="analytics_filter">
+                        <!-- <div class="analytics_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
                                 <span class="fa fa-book"></span>
                                 Analytic Accounts:
@@ -257,7 +219,7 @@
                                 </t>
                             </select>
                             <span id="analytic_res"></span>
-                        </div>
+                        </div> -->
 
                         <div class="analytic_tags_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
@@ -287,24 +249,17 @@
                             </select>
                             <span id="post_res"></span>
                         </div>
-                        <div style="">
-                            <button type="button" id="apply_filter" class="btn btn-primary"
-                                    style="top:0px;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD;">
-                                Apply
-                            </button>
-
-                        </div>
                     </div>
 
-<!--                </div>-->
-<!--                <div style="">-->
-<!--                    <button type="button" id="apply_filter" class="btn btn-primary"-->
-<!--                            style="top:0px;height:30px;right:20px;position: absolute;color:white;background-color: #00A0AD;border-color: #00A0AD;">-->
-<!--                        Apply-->
-<!--                    </button>-->
+                </div>
+                <div style="">
+                    <button type="button" id="apply_filter" class="btn btn-primary"
+                            style="top:0px;height:30px;right:20px;position: absolute;color:white;background-color: #00A0AD;border-color: #00A0AD;">
+                        Apply
+                    </button>
 
-<!--                </div>-->
-<!--            </div>-->
+                </div>
+            </div>
         </div>
     </t>
 
@@ -320,13 +275,13 @@
                         <th>Partner</th>
                         <th>Move</th>
                         <th>Entry Label</th>
+                        <th>Narration</th>
                         <th class="mon_fld">Debit</th>
                         <th class="mon_fld">Credit</th>
                         <th class="mon_fld">Balance</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-set="t_balance" t-value="0"/>
                     <t t-foreach="account_data" t-as="account_line">
                      <t t-set="style" t-value="''"/>
                      <t t-set="style_right" t-value="'text-align:right;'"/>
@@ -364,6 +319,9 @@
                             <td t-att-style="style">
                                 <t t-esc="account_line.lname"/>
                             </td>
+                            <td t-att-style="style">
+                                <t t-esc="account_line.lref"/>
+                            </td>
                             <t t-if="currency_position == 'before'">
                                 <td t-att-style="style_right" class="amt">
                                     <t t-if="account_line.debit == 0">
@@ -390,10 +348,8 @@
                                         <span>-</span>
                                     </t>
                                     <t t-else="">
-                                        <t t-set="t_balance" t-value="Math.round((t_balance+account_line.balance)* 100) / 100"/>
                                         <t t-esc="account_line.currency_code"/>
-<!--                                        <t t-esc="account_line.balance"/>-->
-                                        <t t-esc="t_balance" t-options='{"widget": "float", "precision": 2}'/>
+                                        <t t-esc="account_line.balance"/>
 <!--                                        <t t-esc="Math.round(account_line.balance * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                     </t>
                                 </td>
@@ -424,9 +380,7 @@
                                         <span>-</span>
                                     </t>
                                     <t t-else="">
-                                        <t t-set="t_balance" t-value="Math.round(t_balance+account_line.balance,2)"/>
-                                        <t t-esc="t_balance" t-options='{"widget": "float", "precision": 2}'/>
-<!--                                        <t t-esc="account_line.balance"/>-->
+                                        <t t-esc="account_line.balance"/>
 <!--                                        <t t-esc="Math.round(account_line.balance * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                         <t t-esc="account_line.currency_code"/>
                                     </t>

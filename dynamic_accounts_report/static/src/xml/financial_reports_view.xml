@@ -1,19 +1,19 @@
-
+<?xml version='1.0' encoding='utf-8'?>
 <templates>
     <t t-name="dfr_template_new">
         <div class="">
             <div>
                 <div class="filter_view_dfr"></div>
             </div>
-			<br></br>
-			<div>
+            <br></br>
+            <div>
                 <div class="table_view_dfr" style="right:20px;"></div>
             </div>
-		</div>
-	</t>
+        </div>
+    </t>
 
-	<t t-name="dfr_table">
-		<div>
+    <t t-name="dfr_table">
+        <div>
             <div class="table_main_view">
                 <table cellspacing="0" width="100%">
                     <thead>
@@ -22,88 +22,39 @@
                             <th style="text-align: right; padding-right: 50px;">Debit</th>
                             <th style="text-align: right; padding-right: 50px;">Credit</th>
                             <th style="text-align: right; padding-right: 50px;">Balance</th>
+                            <th t-if="has_comp == true" style="text-align: right; padding-right: 50px;">Comp. Debit</th>
+                            <th t-if="has_comp == true" style="text-align: right; padding-right: 50px;">Comp. Credit</th>
+                            <th t-if="has_comp == true" style="text-align: right; padding-right: 50px;">Comp. Balance</th>
                         </tr>
                     </thead>
-					<tbody>
-
-						<t t-set="none_value" t-value="_"/>
-						<t t-foreach="bs_lines" t-as="a">
-							<t t-if="a['code']">
-								<t t-foreach="report_lines" t-as="account">
-
-
-									<t t-set="common_id" t-value="0"/>
-									<t t-if="account['id'] == a['account']">
-										<tr style="border: 1.5px solid black;" class="gl-line"
-											data-toggle="collapse"
-											t-att-data-account-id="account['id']"
-											t-attf-data-target=".a{{account['id']}}">
-											<td colspan="6" style="border: 0px solid black; padding-left: 50px;">
-												<span>
-													<t t-esc="account['code']"/>
-													-
-													<t t-esc="account['name']"/>
-												</span>
-												<div class="" style="display: inline-block;">
-												<a type="button" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-												</a>
-													<div class="dropdown-menu " role="menu">
-														<div class="o_foldable_menu o_closed_menu " >
-															<div class="form-group ">
-																<div class="show-gl" aria-atomic="true" id="" data-target-input="">
-																	<li role="presentation">
-																		<a role="menuitem" style="background-color:aqua; font-weight:bold;" t-att-data-account-id="account['id']" class="show-gl" >View General Ledger</a>
-																	</li>
-																</div>
-															</div>
-
-														</div>
-													</div>
-												</div>
-											</td>
-											<td t-att-style="fr_padding"><t t-esc="a['m_debit']" t-att-style="style"/></td>
-											<td t-att-style="fr_padding"><t t-esc="a['m_credit']" t-att-style="style"/></td>
-											<td t-att-style="fr_padding"><t t-esc="a['m_balance']" t-att-style="style"/></td>
-
-
-
-											<t t-set="common_id" t-value="'a'+account['id']"/>
-										</tr>
-									</t>
-								</t>
-
-							</t>
-							<t t-else="">
-								<t t-set="style" t-value="'padding: 5px;padding-left: 25px;'"/>
-								<t t-set="fr_head" t-value="'border-bottom: double;'"/>
-								<t t-set="fr_padding" t-value="'padding-top: 5px; text-align: right;padding-right: 50px; vertical-align: bottom;'"/>
-								<t t-if="a['level'] == 1">
-									<t t-set="style" t-value="'padding: 5px;padding-left: 15px; padding-top: 15px;'"/>
-								</t>
-								<t t-if="a['level'] == 2">
-									<t t-set="style" t-value="'padding: 5px;padding-left: 25px; padding-top: 25px;'"/>
-								</t>
-								<t t-if="a['level'] == 3">
-									<t t-set="style" t-value="'padding: 5px;padding-left: 50px;'"/>
-									<t t-set="fr_head" t-value="'border-bottom: 1px solid black;'"/>
-								</t>
-								<t t-if="a['level'] &gt; 3">
-									<t t-set="style" t-value="'padding: 5px;padding-left: 50px;'"/>
-									<t t-set="fr_head" t-value="'border-bottom: 1px solid black;'"/>
-								</t>
-								<tr t-att-style="fr_head">
-									<th colspan="6" t-att-style="style">
-										<t t-esc="a['name']"/>
-									</th>
-									<td t-att-style="fr_padding"><t t-esc="a['m_debit']"/></td>
-									<td t-att-style="fr_padding"><t t-esc="a['m_credit']"/></td>
-									<td t-att-style="fr_padding"><t t-esc="a['m_balance']"/></td>
-								</tr>
-							</t>
-
-						</t>
-
-					</tbody>
+                    <tbody>
+                        <t t-foreach="bs_lines" t-as="view">
+                            <t t-set="view_padding" t-value="view['intend'] * 5.00"/>
+                            <t t-set="fr_padding" t-value="'padding: 5px;padding-left:' +  view_padding + 'px;'"/>
+                                <tr t-if="view['hide'] == false" style="border: 1.5px solid black;" class="gl-line">
+                                    <td colspan="6" t-att-style="fr_padding"><strong><t t-esc="view['name']"/></strong></td>
+                                    <td style="text-align: right; padding-right: 50px;"><strong><t t-if="view['heading'] == false" t-esc="view['debit']"/> <t t-if="view['heading'] == false" t-esc="curr_code"/></strong></td>
+                                    <td style="text-align: right; padding-right: 50px;"><strong><t t-if="view['heading'] == false" t-esc="view['credit']"/> <t t-if="view['heading'] == false" t-esc="curr_code"/></strong></td>
+                                    <td style="text-align: right; padding-right: 50px;"><strong><t t-if="view['heading'] == false" t-esc="view['balance']"/> <t t-if="view['heading'] == false" t-esc="curr_code"/></strong></td>
+                                    <td style="text-align: right; padding-right: 50px;"><strong><t t-if="view['heading'] == false and has_comp == true" t-esc="view['debit_comp']"/> <t t-if="view['heading'] == false and has_comp == true" t-esc="curr_code"/></strong></td>
+                                    <td style="text-align: right; padding-right: 50px;"><strong><t t-if="view['heading'] == false and has_comp == true" t-esc="view['credit_comp']"/> <t t-if="view['heading'] == false and has_comp == true" t-esc="curr_code"/></strong></td>
+                                    <td style="text-align: right; padding-right: 50px;"><strong><t t-if="view['heading'] == false and has_comp == true" t-esc="view['balance_comp']"/> <t t-if="view['heading'] == false and has_comp == true" t-esc="curr_code"/></strong></td>
+                                </tr>
+                            <t t-foreach="view['child_lines']" t-as="lines">
+                                <t t-set="line_padding" t-value="view['intend'] * 5.00 * 2"/>
+                                <t t-set="li_padding" t-value="'padding: 5px;padding-left:' +  line_padding + 'px;'"/>
+                                <tr style="border: 1.5px solid black;" class="gl-line">
+                                    <td colspan="6" t-att-style="li_padding"><t t-esc="lines['account_name']"/></td>
+                                    <td style="text-align: right; padding-right: 50px;"><t t-esc="lines['debit']"/> <t t-esc="curr_code"/></td>
+                                    <td style="text-align: right; padding-right: 50px;"><t t-esc="lines['credit']"/> <t t-esc="curr_code"/></td>
+                                    <td style="text-align: right; padding-right: 50px;"><t t-esc="lines['balance']"/> <t t-esc="curr_code"/></td>
+                                    <td t-if="has_comp" style="text-align: right; padding-right: 50px;"><t t-esc="lines['debit_comp']"/> <t t-esc="curr_code"/></td>
+                                    <td t-if="has_comp" style="text-align: right; padding-right: 50px;"><t t-esc="lines['credit_comp']"/> <t t-esc="curr_code"/></td>
+                                    <td t-if="has_comp" style="text-align: right; padding-right: 50px;"><t t-esc="lines['balance_comp']"/> <t t-esc="curr_code"/></td>
+                                </tr>
+                            </t>
+                        </t>
+                    </tbody>
 
                 </table>
 
@@ -111,86 +62,69 @@
         </div>
     </t>
     <t t-name="DfrFilterView">
-		<div class="">
-			   <h1 style="padding:10px">
-					<t t-esc="title"/>
-				</h1>
+        <div class="">
+               <h1 style="padding:10px">
+                    <t t-esc="title"/>
+                </h1>
 
-		</div>
-		<div class="row" style="margin-right: 10px; margin-left: 10px;">
-            <div class="sub_container_left" style="width:70%;">
+        </div>
+        <div class="" style="position: relative;">
+
+            <div class="sub_container_left">
                 <div class="report_print">
                     <button type="button" class="btn btn-primary" id="pdf"
-                            style="position: relative;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
+                            style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD;
+                                    padding:3px;">
                         Print (PDF)
                     </button>
                     <button type="button" class="btn btn-primary" id="xlsx"
-                            style="position: relative;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
+                            style="left:20px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD;">
                         Export (XLSX)
                     </button>
                 </div>
             </div>
             <br></br>
-            <div class="sub_container_right row" style="width:30%;height:3%;top:0px;position: relative;">
+            <div class="sub_container_right" style="width:50%;height:3%;right:0px;top:0px;position: absolute;">
+                <div class="" style="right:80x;">
 
+                    <br></br>
+                    <div class="row" style="right:80px;top:0px;position: absolute;width:50;">
                         <div class="time_range" style="">
-                            <a type="button" class="dropdown-toggle" data-toggle="dropdown" >
-                                <span class="fa fa-calendar" title="Dates" role="img" aria-label="Dates"></span>
-                                Date Range
-                            </a>
-                            <div class="dropdown-menu" role="menu">
-                                <div class="form-group">
-                                    <label class="" for="date_from">Start Date :</label>
-                                        <div class="input-group date" id="date_from" data-target-input="nearest">
-                                            <input type="text" name="date_from" class="form-control datetimepicker-input" data-target="#date_from" t-att-name="prefix"/>
-                                            <div class="input-group-append" data-target="#date_from" data-toggle="datetimepicker">
-                                                <span class="input-group-text">
-                                                    <span class="fa fa-calendar" role="img" aria-label="Calendar"></span>
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                    <label class="" for="date_to">End Date :</label>
-                                    <div class="input-group date" id="date_to" data-target-input="nearest">
-
-                                        <input type="text" name="date_to" class="form-control datetimepicker-input" data-target="#date_to" t-att-name="prefix"/>
-                                        <div class="input-group-append" data-target="#date_to" data-toggle="datetimepicker">
-                                            <span class="input-group-text">
-                                                <span class="fa fa-calendar" role="img" aria-label="Calendar"></span>
-                                            </span>
-                                        </div>
+                        <a type="button" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            <span class="fa fa-calendar" title="Dates" role="img" aria-label="Dates"></span>
+Date Range
+                        </a>
+                        <div class="dropdown-menu" role="menu">
+                            <div class="" >
+                                <label class="" for="date_from">Start Date :</label>
+                                <div class="">
+                                    <div class="" aria-atomic="true" id="" >
+                                        <input type="date" id="date_from"></input>
                                     </div>
-
+                                </div>
+                                <label class="" for="date_to">End Date :</label>
+                                <div class="">
+                                    <div class="" aria-atomic="true" id="" >
+                                        <input type="date" id="date_to"></input>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-					<div class="journals_filter" style="">
-						<a type="button" class="dropdown-toggle" data-toggle="dropdown">
-							<span class="fa fa-book"></span>
+                    </div>
+                    <div class="journals_filter" style="">
+                        <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="fa fa-book"></span>
 Journals:
-						</a>
-						<select class="dropdown-menu  journals" name="states[]" multiple="multiple">
-							<div role="separator" class="dropdown-divider"></div>
-							<t t-foreach="filter_data.journals_list" t-as="journal">
-
-								 <t t-if="journal[0]=='divider'">
-                                            <div role="separator" class="dropdown-divider"/>
-
-                                         <option disabled="disabled" role="menuitem" t-attf-value="{{journal[0]}}">
-                                            <t t-esc="journal[1]"/>
-                                        </option>
-                                            <div role="separator" class="dropdown-divider"/>
-                                     </t>
-
-
-                                    <t t-else="">
-								<option t-attf-value="{{journal[0]}}"><t t-esc="journal[1]"/>
-								</option>
-									</t>
-							</t>
-						</select>
-						<span id="journal_res"></span>
-					</div>
+                        </a>
+                        <select class="dropdown-menu  journals" name="states[]" multiple="multiple">
+                            <div role="separator" class="dropdown-divider"></div>
+                            <t t-foreach="filter_data.journals_list" t-as="journal">
+                                <option t-attf-value="{{journal[0]}}"><t t-esc="journal[1]"/>
+                                </option>
+                            </t>
+                        </select>
+                        <span id="journal_res"></span>
+                    </div>
 
                         <div class="accounts_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
@@ -199,43 +133,30 @@ Journals:
                             </a>
                             <select class="dropdown-menu account" name="states[]" multiple="multiple">
                                 <t t-foreach="filter_data.accounts_list" t-as="account">
-
-									<t t-if="account[0]=='divider'">
-                                            <div role="separator" class="dropdown-divider"/>
-
-                                         <option disabled="disabled" role="menuitem" t-attf-value="{{account[0]}}">
-                                            <t t-esc="account[1]"/>
-                                        </option>
-                                            <div role="separator" class="dropdown-divider"/>
-                                     </t>
-
-
-                                    <t t-else="">
                                     <option t-attf-value="{{account[0]}}">
                                         <t t-esc="account[1]"/>
                                     </option>
-									</t>
                                 </t>
                             </select>
                             <span id="acc_res"></span>
                         </div>
 
-						<div class="account_tags_filter">
+                        <div class="account_tags_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
                                 <span class="fa fa-book"></span>
                                 Account Tags:
                             </a>
                             <select class="dropdown-menu account-tag" name="states[]" multiple="multiple">
                                 <t t-foreach="filter_data.account_tag_list" t-as="account_tag">
-									<option t-attf-value="{{account_tag[0]}}">
-										<t t-esc="account_tag[1]"/>
-									</option>
-								</t>
+                                    <option t-attf-value="{{account_tag[0]}}">
+                                        <t t-esc="account_tag[1]"/>
+                                    </option>
+                                </t>
                             </select>
                             <span id="acc_tag_res"></span>
                         </div>
 
-                        <div class="analytics_filter">
+                        <!-- <div class="analytics_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
                                 <span class="fa fa-book"></span>
                                 Analytic Accounts:
@@ -248,50 +169,74 @@ Journals:
                                 </t>
                             </select>
                             <span id="analytic_res"></span>
-                        </div>
+                        </div> -->
 
-						<div class="analytic_tags_filter">
+                        <div class="analytic_tags_filter">
                             <a type="button" class="dropdown-toggle" data-toggle="dropdown">
                                 <span class="fa fa-book"></span>
                                 Analytic Tags:
                             </a>
                             <select class="dropdown-menu analytic-tag" name="states[]" multiple="multiple">
                                 <t t-foreach="filter_data.analytic_tag_list" t-as="analytic_tag">
-									<option t-attf-value="{{analytic_tag[0]}}">
-										<t t-esc="analytic_tag[1]"/>
-									</option>
-								</t>
+                                    <option t-attf-value="{{analytic_tag[0]}}">
+                                        <t t-esc="analytic_tag[1]"/>
+                                    </option>
+                                </t>
                             </select>
                             <span id="analic_tag_res"></span>
                         </div>
 
 
-					<div class="search-Target-move" style="">
-						<a type="button" class="dropdown-toggle" data-toggle="dropdown">
-							<span class="fa fa-filter"></span>
+                    <div class="search-Target-move" style="">
+                        <a type="button" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="fa fa-filter"></span>
 Target Move:
-						</a>
-						<select id="entries" class="dropdown-menu target_move" name="states[]" >
-							<div role="separator" class="dropdown-divider"></div>
-								<option value="Posted">Posted Entries</option>
-								<option value="All">All Entries</option>
+                        </a>
+                        <select id="entries" class="dropdown-menu target_move" name="states[]" >
+                            <div role="separator" class="dropdown-divider"></div>
+                                <option value="posted">Posted Entries</option>
+                                <option value="all">All Entries</option>
 
-						</select>
-						<span id="post_res"></span>
-					</div>
-				<div style="">
+                        </select>
+                        <span id="post_res"></span>
+                    </div>
+                    
+                        <div class="time_range" style="">
+                        <a type="button" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            <span class="fa fa-calendar" title="Dates" role="img" aria-label="Dates"></span>
+Comp. Date Range
+                        </a>
+                        <div class="dropdown-menu" role="menu">
+                            <div class="" >
+                                <label class="" for="date_from_comp">Comp. Start Date :</label>
+                                <div class="">
+                                    <div class="" aria-atomic="true" id="" >
+                                        <input type="date" id="date_from_comp"></input>
+                                    </div>
+                                </div>
+                                <label class="" for="date_to_comp">Comp. End Date :</label>
+                                <div class="">
+                                    <div class="" aria-atomic="true" id="" >
+                                        <input type="date" id="date_to_comp"></input>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    </div>
+
+                </div>
+                <div style="">
                     <button type="button" id="apply_filter" class="btn btn-primary"
-                            style="top:0px;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD;">
+                            style="top:0px;height:30px;right:20px;position: absolute;color:white;background-color: #00A0AD;border-color: #00A0AD;">
                         Apply
                     </button>
 
                 </div>
-					</div>
-
-<!--				</div>-->
-<!--				-->
-<!--			</div>-->
-		</div>
-	</t>
+            </div>
+        </div>
+    </t>
 
 </templates>

@@ -27,27 +27,4 @@
 - Style Issue Updated
 
 
-#### 20.12.2021
-#### Version 14.0.1.2.4
-#### UPDT
-- Translation issue and Calendar format issue
 
-#### 15.01.2022
-#### Version 14.0.1.2.5
-#### UPDT
-- Arabic Translation added
-
-#### 01.02.2022
-#### Version 14.0.1.2.6
-#### UPDT AND BUGFIX
-- Multi-company and Translation Update and Bugfix
-
-#### 16.04.2022
-#### Version 14.0.1.2.7
-#### UPDT AND BUGFIX
-- Loading Issue and orderby date
-
-#### 27.04.2023
-#### Version 14.0.1.2.7
-#### UPDT AND BUGFIX
-- Update and Bugfix in General Ledger

@@ -1,9 +1,9 @@
 <templates>
-    <t t-name="AgeingTemp">
+    <t t-name="AgeingTempSOA">
         <div class="">
             <div class="">
                 <h1 style="padding:10px">
-                    Partner Ageing
+                    Duty Partner Ageing
                 </h1>
 
             </div>
@@ -17,23 +17,48 @@
             </div>
         </div>
     </t>
-    <t t-name="Ageingtable">
+    <t t-name="AgeingtableSOA">
         <div>
             <div class="table_main_view">
                 <table cellspacing="0" width="100%">
                     <thead>
                         <tr>
                             <th colspan="6">Partner</th>
-                            <th class="mon_fld">Unallocated</th>
-                            <th class="mon_fld">0-30</th>
-                            <th class="mon_fld">30-60</th>
-                            <th class="mon_fld">60-90</th>
-                            <th class="mon_fld">90-120</th>
-                            <th class="mon_fld">120-180</th>
-                            <th class="mon_fld">180-365</th>
-                            <th class="mon_fld">365+</th>
+                            <th>Unallocated</th>
+                            <th colspan="3" style="text-align: center !important;">0-30</th>
+                            <th colspan="3" style="text-align: center !important;">30-60</th>
+                            <th colspan="3" style="text-align: center !important;">60-90</th>
+                            <th colspan="3" style="text-align: center !important;">90-120</th>
+                            <th colspan="3" style="text-align: center !important;">120-180</th>
+                            <th colspan="3" style="text-align: center !important;">180-365</th>
+                            <th colspan="3" style="text-align: center !important;">365+</th>
 
-                            <th class="mon_fld">Total</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr>
+                            <th colspan="6"></th>
+                            <th></th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
+                            <th>Total</th>
+                            <th>Duty Amount</th>
+                            <th>VAT Amount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,101 +79,7 @@
 
                                         <t t-esc="account['name']"/>
                                     </span>
-                                    <t t-if="currency[1] == 'before'">
-                                        <td style="text-align:right;">
-                                            <t t-if="account['unalloc'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['unalloc']"/>
-<!--                                                <t t-esc="Math.round(account['direction'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['6'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['6']"/>
-<!--                                                <t t-esc="Math.round(account['4'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['5'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['5']"/>
-<!--                                                <t t-esc="Math.round(account['4'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['4'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['4']"/>
-<!--                                                <t t-esc="Math.round(account['4'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['3'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['3']"/>
-<!--                                                <t t-esc="Math.round(account['3'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['2'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['2']"/>
-<!--                                                <t t-esc="Math.round(account['2'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['1'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['1']"/>
-<!--                                                <t t-esc="Math.round(account['1'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['0'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['0']"/>
-<!--                                                <t t-esc="Math.round(account['0'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['total'] == 0">
-                                                <span>-</span>
-                                            </t>
-                                            <t t-else="">
-                                                <t t-esc="currency[0]"/>
-                                                <t t-esc="account['total']"/>
-<!--                                                <t t-esc="Math.round(account['total'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                            </t>
-                                        </td>
-                                    </t>
-                                    <t t-else="">
-                                        <td style="text-align:right;">
+                                        <td style="text-align:left;">
                                             <t t-if="account['unalloc'] == 0">
                                                 <span>-</span>
                                             </t>
@@ -158,80 +89,204 @@
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['6'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['6']['amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['6']"/>
+                                                <t t-esc="account['6']['amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['6']['duty_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['6']['duty_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['6']['vat_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['6']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['5']['amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['5']['amount']"/>
 
 <!--                                                <t t-esc="Math.round(account['4'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['5'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['5']['duty_amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['5']"/>
+                                                <t t-esc="account['5']['duty_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['5']['vat_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['5']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['4']['amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['4']['amount']"/>
 
 <!--                                                <t t-esc="Math.round(account['4'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['4'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['4']['duty_amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['4']"/>
-
-<!--                                                <t t-esc="Math.round(account['4'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                                <t t-esc="account['4']['duty_amount']"/>
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['3'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['4']['vat_amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['3']"/>
+                                                <t t-esc="account['4']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['3']['amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['3']['amount']"/>
 <!--                                                <t t-esc="Math.round(account['3'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['2'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['3']['duty_amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['2']"/>
+                                                <t t-esc="account['3']['duty_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['3']['vat_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['3']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['2']['amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['2']['amount']"/>
 <!--                                                <t t-esc="Math.round(account['2'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['1'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['2']['duty_amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['1']"/>
+                                                <t t-esc="account['2']['duty_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['2']['vat_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['2']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['1']['amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['1']['amount']"/>
 <!--                                                <t t-esc="Math.round(account['1'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
-                                            <t t-if="account['0'] == 0">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['1']['duty_amount'] == 0">
                                                 <span>-</span>
                                             </t>
                                             <t t-else="">
-                                                <t t-esc="account['0']"/>
+                                                <t t-esc="account['1']['duty_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['1']['vat_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['1']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['0']['amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['0']['amount']"/>
 <!--                                                <t t-esc="Math.round(account['0'] * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-                                        <td style="text-align:right;">
+                                        <td style="text-align:left;">
+                                            <t t-if="account['0']['duty_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['0']['duty_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
+                                            <t t-if="account['0']['vat_amount'] == 0">
+                                                <span>-</span>
+                                            </t>
+                                            <t t-else="">
+                                                <t t-esc="account['0']['vat_amount']"/>
+                                                <t t-esc="currency[0]"/>
+                                            </t>
+                                        </td>
+                                        <td style="text-align:left;">
                                             <t t-if="account['total'] == 0">
                                                 <span>-</span>
                                             </t>
@@ -241,8 +296,6 @@
                                                 <t t-esc="currency[0]"/>
                                             </t>
                                         </td>
-
-                                    </t>
                                 </td>
                                 <tr t-attf-class="collapse a{{account['partner_id']}}">
                                     <td colspan="14">
@@ -262,14 +315,10 @@
     </t>
 
 
-    <t t-name="AgeingFilterView">
+    <t t-name="AgeingFilterViewSOA">
         <div class="" style="position: relative;">
             <div class="sub_container_left">
                 <div class="report_print">
-                    <button type="button" class="btn btn-primary" id="pdf"
-                            style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
-                        Print (PDF)
-                    </button>
                     <button type="button" class="btn btn-primary" id="xlsx"
                             style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
                         Export (XLSX)
@@ -373,7 +422,7 @@
         </div>
     </t>
 
-    <t t-name="SubSectional">
+    <t t-name="SubSectionalSOA">
         <div class="gl-table-div">
             <table class="table table-sm o_main_table"
                    style="border: 0px solid black;display compact;">
@@ -384,20 +433,45 @@
                         <th>JRNL</th>
                         <th>Account</th>
                         <th>Unallocated</th>
-                        <th>0-30</th>
-                        <th>30-60</th>
-                        <th>60-90</th>
-                        <th>90-120</th>
-                        <th>120-180</th>
-                        <th>180-365</th>
-                        <th>365+</th>
-
+                        <th colspan="3" style="text-align: center;">0-30</th>
+                        <th colspan="3" style="text-align: center;">30-60</th>
+                        <th colspan="3" style="text-align: center;">60-90</th>
+                        <th colspan="3" style="text-align: center;">90-120</th>
+                        <th colspan="3" style="text-align: center;">120-180</th>
+                        <th colspan="3" style="text-align: center;">180-365</th>
+                        <th colspan="3" style="text-align: center;">365+</th>
+                    </tr>
+                    <tr style="">
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
+                        <th>Total</th>
+                        <th>Duty Amount</th>
+                        <th>VAT Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     <t t-foreach="account_data" t-as="account_line">
-
-
                         <tr>
                             <td>
                                 <t t-if="account_line.mov_id">
@@ -433,134 +507,6 @@
                                     <t t-esc="account_line.acc_name"/>
                                 </span>
                             </td>
-                            <t t-if="account_line.currency== 'before'">
-                                <td>
-                                        <t t-if="account_line.paid_amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.paid_amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-                                  
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period7">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period6">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period5">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period4">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period3">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period2">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                                <td>
-                                    <t t-if="account_line.period1">
-                                        <t t-if="account_line.amount== 0">
-                                            <span>-</span>
-                                        </t>
-                                        <t t-else="">
-                                            <t t-esc="account_line.symbol"/>
-                                            <t t-esc="account_line.amount"/>
-<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
-                                        </t>
-                                    </t>
-                                    <t t-else="">
-                                        <span>-</span>
-                                    </t>
-                                </td>
-                            </t>
-                            <t t-else="">
                                 <td>
                                         <t t-if="account_line.paid_amount == 0">
                                             <span>-</span>
@@ -585,12 +531,64 @@
 
                                 </td>
                                 <td>
+                                    <t t-if="account_line.period7">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period7">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
                                     <t t-if="account_line.period6">
                                         <t t-if="account_line.amount == 0">
                                             <span>-</span>
                                         </t>
                                         <t t-else="">
                                             <t t-esc="account_line.amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period6">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period6">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
 <!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                             <t t-esc="account_line.symbol"/>
                                         </t>
@@ -611,12 +609,64 @@
 
                                 </td>
                                 <td>
+                                    <t t-if="account_line.period5">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period5">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
                                     <t t-if="account_line.period4">
                                         <t t-if="account_line.amount == 0">
                                             <span>-</span>
                                         </t>
                                         <t t-else="">
                                             <t t-esc="account_line.amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period4">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period4">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
 <!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                             <t t-esc="account_line.symbol"/>
                                         </t>
@@ -637,12 +687,64 @@
 
                                 </td>
                                 <td>
+                                    <t t-if="account_line.period3">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period3">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
                                     <t t-if="account_line.period2">
                                         <t t-if="account_line.amount == 0">
                                             <span>-</span>
                                         </t>
                                         <t t-else="">
                                             <t t-esc="account_line.amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period2">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
+
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period2">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
 <!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
                                             <t t-esc="account_line.symbol"/>
                                         </t>
@@ -662,10 +764,32 @@
                                     </t>
 
                                 </td>
+                                <td>
+                                    <t t-if="account_line.period1">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.duty_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
 
+                                </td>
+                                <td>
+                                    <t t-if="account_line.period1">
+                                        <t t-if="account_line.amount == 0">
+                                            <span>-</span>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-esc="account_line.vat_amount"/>
+<!--                                            <t t-esc="Math.round(account_line.amount * Math.pow(10, 2)) / Math.pow(10, 2)"/>-->
+                                            <t t-esc="account_line.symbol"/>
+                                        </t>
+                                    </t>
 
-                            </t>
-
+                                </td>
                         </tr>
                     </t>
 

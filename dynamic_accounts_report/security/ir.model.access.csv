@@ -6,3 +6,4 @@ access_dynamic_balance_sheet_report,access.dynamic.balance.sheet.report,model_dy
 access_account_partner_ledger,access.account.partner.ledger,model_account_partner_ledger,account.group_account_user,1,1,1,1
 access_account_partner_ageing,account_partner_ageing.account_partner_ageing,model_account_partner_ageing,account.group_account_user,1,1,1,1
 access_account_day_book,account_day_book.account_day_book,model_account_day_book,account.group_account_user,1,1,1,1
+access_account_partner_ageing_soa,account_partner_ageing.account_partner_ageing_soa,model_account_partner_ageing_soa,account.group_account_user,1,1,1,1

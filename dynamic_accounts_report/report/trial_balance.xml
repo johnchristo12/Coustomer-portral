@@ -1,8 +1,74 @@
 <odoo>
-
     <template id="dynamic_accounts_report.trial_balance">
+       <t t-set="data_report_landscape" t-value="True"/>
+        <t t-set="full_width" t-value="True"/>
         <t t-call="web.html_container">
-            <t t-call="web.internal_layout">
+            <t t-call="web.external_layout">
+                <div class="page">
+                <strong><p style="text-align: center;">Trial Balance</p></strong>
+                <div id="informations" class="row mt32 mb32">
+                    <div class="col-auto col-3 mw-100 mb-2" name="date_from" style="font-size: 12px;" t-if="Filters.get('date_from')">
+                        <strong>Date From:</strong>
+                         <span t-esc="Filters['date_from']" t-option='{"widget": "date"}'/>
+                    </div>
+                    <div class="col-auto col-3 mw-100 mb-2" name="date_to" style="font-size: 12px;" t-if="Filters.get('date_to')">
+                        <strong>Date To:</strong>
+                         <span t-esc="Filters['date_to']" t-option='{"widget": "date"}'/>
+                    </div>
+                    <div class="col-auto col-3 mw-100 mb-2" name="journals" style="font-size: 12px;">
+                        <strong>Journals:</strong>
+                         <span t-esc="Filters['journals']"/>
+                    </div>
+                    <div class="col-auto col-3 mw-100 mb-2" name="partners" style="font-size: 12px;">
+                        <strong>Target Move:</strong>
+                         <span t-esc="Filters['target_move']"/>
+                    </div>
+                </div>
+                <table class="table table-sm o_main_table" name="invoice_line_table" style="font-size: 12px;">
+                    <thead>
+                        <tr>
+                            <th colspan="2"></th>
+                            <th colspan="2" class="text-center">Opening Balance</th>
+                            <th colspan="2" class="text-center">Current Transactions</th>
+                            <th colspan="2" class="text-center">Closing Balance</th>
+                        </tr>
+                        <tr>
+                            <th name="th_account_code" class="text-left">Account Code</th>
+                            <th name="th_account_name" class="text-left">Account Name</th>
+                            <th name="th_op_debit" class="text-center">Opening Debit</th>
+                            <th name="th_op_credit" class="text-center">Opening Credit</th>
+                            <th name="th_debit" class="text-center">Debit</th>
+                            <th name="th_credit" class="text-center">Credit</th>
+                            <th name="th_cl_debit" class="text-center">Closing Debit</th>
+                            <th name="th_cl_credit" class="text-center">Closing Credit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="account_data" t-as="line">
+                            <tr>
+                                <td><span t-esc="line['code']"/></td>
+                                <td><span t-esc="line['name']"/></td>
+                                <td style="text-align: right;"><span t-esc="line['Init_balance']['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></td>
+                                <td style="text-align: right;"><span t-esc="line['Init_balance']['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></td>
+                                <td style="text-align: right;"><span t-esc="line['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></td>
+                                <td style="text-align: right;"><span t-esc="line['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></td>
+                                <td style="text-align: right;"><span t-esc="line['closing_balance']['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></td>
+                                <td style="text-align: right;"><span t-esc="line['closing_balance']['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></td>
+                            </tr>
+                        </t>
+                        <tr>
+                            <td></td>
+                            <td><strong>Total</strong></td>
+                            <td style="text-align: right;"><strong><span t-esc="op_debit_total" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></strong></td>
+                            <td style="text-align: right;"><strong><span t-esc="op_credit_total" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></strong></td>
+                            <td style="text-align: right;"><strong><span t-esc="debit_total" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></strong></td>
+                            <td style="text-align: right;"><strong><span t-esc="credit_total" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></strong></td>
+                            <td style="text-align: right;"><strong><span t-esc="cl_debit_total" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></strong></td>
+                            <td style="text-align: right;"><strong><span t-esc="cl_credit_total" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/></strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            <!-- <t t-call="web.internal_layout">
                 <div class="page">
                     <div class="oe_structure"/>
                     <h3 style="text-align:centre;left:50%;"><span t-esc="Filters.get('company_name')"/>: Trial Balance
@@ -110,7 +176,7 @@
 
                         </table>
                     </div>
-                    <br></br>
+                    <br></br> -->
                 </div>
             </t>
         </t>

@@ -13,6 +13,7 @@
                 <script type="text/javascript" src="/dynamic_accounts_report/static/src/js/financial_reports.js"/>
                 <script type="text/javascript" src="/dynamic_accounts_report/static/src/js/partner_ledger.js"/>
                 <script type="text/javascript" src="/dynamic_accounts_report/static/src/js/ageing.js"/>
+                <script type="text/javascript" src="/dynamic_accounts_report/static/src/js/ageing_soa.js"/>
                 <script type="text/javascript" src="/dynamic_accounts_report/static/src/js/daybook.js"/>
 
             </xpath>

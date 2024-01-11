@@ -20,6 +20,15 @@
                         <strong>To:</strong>
                         <t t-esc="Filters['date_to']"/>
                         </span>
+                        <span t-if="Filters.get('date_from_comp')">
+                        <strong> Comparison From:</strong>
+                        <t t-esc="Filters['date_from_comp']"/>
+                        </span>
+
+                        <span t-if="Filters.get('date_to_comp')">
+                        <strong>Comparison To:</strong>
+                        <t t-esc="Filters['date_to_comp']"/>
+                        </span>
 
                         <div style="width:100%;">
                             <div style="text-align:centre;" class="row">
@@ -86,65 +95,97 @@
                                 <th class="text-right">Debit</th>
                                 <th class="text-right">Credit</th>
                                 <th class="text-right">Balance</th>
+                                <th t-if="has_comp" class="text-right">Comp. Debit</th>
+                                <th t-if="has_comp" class="text-right">Comp. Credit</th>
+                                <th t-if="has_comp" class="text-right">Comp. Balance</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr t-foreach="report_lines" t-as="a">
-
-                                <t t-if="a['level'] != 0">
-                                    <t t-if="a.get('level') &gt; 2">
-                                            <t t-set="style" t-value="'font-weight: normal;'"/>
-                                        </t>
-                                        <t t-if="not a.get('level') &gt; 2">
-                                            <t t-set="style" t-value="'font-weight: bold;'"/>
-                                    </t>
-                                    <t t-if="a.get('code')">
-                                       <t t-foreach="account_data" t-as="line">
-                                            <t t-if="line['id'] == a.get('account')">
-                                                <tr>
-                                                    <td>
-                                                        <span style="color: white;" t-esc="'..' * a.get('level', 0) * 3"/>
-                                                        <span t-att-style="style" t-esc="line['name']"/>
-                                                    </td>
-                                                    <td class="text-right">
-                                                        <span t-esc="line['debit']"
-                                                              t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                                                    </td>
-                                                    <td class="text-right">
-                                                        <span t-esc="line['credit']"
-                                                              t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                                                    </td>
-                                                    <td class="text-right">
-                                                        <span t-esc="line['balance']"
-                                                              t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
-                                                    </td>
-                                                </tr>
-                                            </t>
-                                        </t>
-                                    </t>
-
-                                    <t t-else="">
-
+                            <t t-foreach="report_lines" t-as="a">
+                                <tr t-if="a['hide'] == false">
+                                    <td>
+                                        <strong>
+                                            <span style="color: white;" t-esc="'..' * a.get('intend', 0)"/>
+                                            <span t-att-style="style" t-esc="a['name']"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="a['debit']"
+                                                t-if="a['heading'] == false" 
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="a['credit']"
+                                                t-if="a['heading'] == false" 
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            <span t-esc="a['balance']"
+                                                t-if="a['heading'] == false" 
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    
+                                    <td class="text-right" t-if="has_comp">
+                                        <strong>
+                                            <span t-esc="a['debit_comp']"
+                                                t-if="a['heading'] == false" 
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right" t-if="has_comp">
+                                        <strong>
+                                            <span t-esc="a['credit_comp']"
+                                                t-if="a['heading'] == false" 
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                    <td class="text-right" t-if="has_comp">
+                                        <strong>
+                                            <span t-esc="a['balance_comp']"
+                                                t-if="a['heading'] == false" 
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </strong>
+                                    </td>
+                                </tr>
+                                <t t-foreach="a['child_lines']" t-as="l">
+                                    <tr>
                                         <td>
-                                            <span style="color: white;" t-esc="'..' * a.get('level', 0) * 3"/>
-                                            <span t-att-style="style" t-esc="a.get('name')"/>
+                                            <span style="color: white;" t-esc="'..' * (a.get('intend', 0) + 5)"/>
+                                            <span t-att-style="style" t-esc="l['account_name']"/>
                                         </td>
-                                        <td class="text-right" style="white-space: text-nowrap;">
-                                            <span t-att-style="style" t-esc="a.get('debit')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        <td class="text-right">
+                                            <span t-esc="l['debit']"
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                         </td>
-                                        <td class="text-right" style="white-space: text-nowrap;">
-                                            <span t-att-style="style" t-esc="a.get('credit')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        <td class="text-right">
+                                            <span t-esc="l['credit']"
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                         </td>
-                                        <td class="text-right" style="white-space: text-nowrap;">
-                                            <span t-att-style="style" t-esc="a.get('balance')"
-                                                  t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        <td class="text-right">
+                                            <span t-esc="l['balance']"
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
                                         </td>
-                                    </t>
-
+                                        <td class="text-right" t-if="has_comp">
+                                            <span t-esc="l['debit_comp']"
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                        <td class="text-right" t-if="has_comp">
+                                            <span t-esc="l['credit_comp']"
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                        <td class="text-right" t-if="has_comp">
+                                            <span t-esc="l['balance_comp']"
+                                                t-options="{'widget': 'monetary', 'display_currency': env.company.currency_id}"/>
+                                        </td>
+                                    </tr>
                                 </t>
-                            </tr>
+                            </t>
                         </tbody>
                     </table>
 

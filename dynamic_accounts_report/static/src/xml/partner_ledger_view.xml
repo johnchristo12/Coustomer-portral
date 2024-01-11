@@ -91,50 +91,44 @@
     </t>
 
     <t t-name="PLFilterView">
-        <div class="row" style="margin-right: 10px; margin-left: 10px;">
-            <div class="sub_container_left" style="width:70%;">
+        <div class="" style="position: relative;">
+            <div class="sub_container_left">
                 <div class="report_print">
                     <button type="button" class="btn btn-primary" id="pdf"
-                            style="position: relative;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
+                            style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
                         Print (PDF)
                     </button>
                     <button type="button" class="btn btn-primary" id="xlsx"
-                            style="position: relative;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
+                            style="left:10px; height:30px;position: relative;color:white;background-color: #00A0AD;border-color: #00A0AD; padding:3px;">
                         Export (XLSX)
                     </button>
                 </div>
             </div>
             <br></br>
-            <div class="sub_container_right row" style="width:30%;height:3%;top:0px;position: relative;">
+            <div class="sub_container_right" style="width:50%;height:3%;right:0px;top:0px;position: absolute;">
+                <div class="" style="right:80x;">
 
+                    <br></br>
+                    <div class="row" style="right:80px;top:0px;position: absolute;width:50;">
                         <div class="time_range" style="">
-                            <a type="button" class="dropdown-toggle" data-toggle="dropdown" >
+                            <a type="button" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                                 <span class="fa fa-calendar" title="Dates" role="img" aria-label="Dates"></span>
                                 Date Range
                             </a>
                             <div class="dropdown-menu" role="menu">
-                                <div class="form-group">
+                                <div class="">
                                     <label class="" for="date_from">Start Date :</label>
-                                        <div class="input-group date" id="date_from" data-target-input="nearest">
-                                            <input type="text" name="date_from" class="form-control datetimepicker-input" data-target="#date_from" t-att-name="prefix"/>
-                                            <div class="input-group-append" data-target="#date_from" data-toggle="datetimepicker">
-                                                <span class="input-group-text">
-                                                    <span class="fa fa-calendar" role="img" aria-label="Calendar"></span>
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                    <label class="" for="date_to">End Date :</label>
-                                    <div class="input-group date" id="date_to" data-target-input="nearest">
-
-                                        <input type="text" name="date_to" class="form-control datetimepicker-input" data-target="#date_to" t-att-name="prefix"/>
-                                        <div class="input-group-append" data-target="#date_to" data-toggle="datetimepicker">
-                                            <span class="input-group-text">
-                                                <span class="fa fa-calendar" role="img" aria-label="Calendar"></span>
-                                            </span>
+                                    <div class="">
+                                        <div class="" aria-atomic="true" id="">
+                                            <input type="date" id="date_from"></input>
                                         </div>
                                     </div>
-
+                                    <label class="" for="date_to">End Date :</label>
+                                    <div class="">
+                                        <div class="" aria-atomic="true" id="">
+                                            <input type="date" id="date_to"></input>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -143,13 +137,14 @@
                                 <span class="fa fa-users"></span>
                                 Partners:
                             </a>
-                            <select class="dropdown-menu partners " name="states[]" multiple="multiple">
+                            <input type="text" class="dropdown-menu partners "/>
+                            <!-- <select class="dropdown-menu partners " name="states[]" multiple="multiple">
                                 <t t-foreach="filter_data.partners_list" t-as="partner">
                                     <option t-attf-value="{{partner[0]}}">
                                         <t t-esc="partner[1]"/>
                                     </option>
                                 </t>
-                            </select>
+                            </select> -->
                             <span id="partner_res"></span>
 
                         </div>
@@ -193,22 +188,9 @@
                             <select class="dropdown-menu  journals" name="states[]" multiple="multiple">
                                 <div role="separator" class="dropdown-divider"></div>
                                 <t t-foreach="filter_data.journals_list" t-as="journal">
-
-                                    <t t-if="journal[0]=='divider'">
-                                            <div role="separator" class="dropdown-divider"/>
-
-                                         <option disabled="disabled" role="menuitem" t-attf-value="{{journal[0]}}">
-                                            <t t-esc="journal[1]"/>
-                                        </option>
-                                            <div role="separator" class="dropdown-divider"/>
-                                     </t>
-
-
-                                    <t t-else="">
                                     <option t-attf-value="{{journal[0]}}">
                                         <t t-esc="journal[1]"/>
                                     </option>
-                                    </t>
                                 </t>
                             </select>
                             <span id="journal_res"></span>
@@ -220,21 +202,9 @@
                             </a>
                             <select class="dropdown-menu account" name="states[]" multiple="multiple">
                                 <t t-foreach="filter_data.accounts_list" t-as="account">
-                                    <t t-if="account[0]=='divider'">
-                                            <div role="separator" class="dropdown-divider"/>
-
-                                         <option disabled="disabled" role="menuitem" t-attf-value="{{account[0]}}">
-                                            <t t-esc="account[1]"/>
-                                        </option>
-                                            <div role="separator" class="dropdown-divider"/>
-                                     </t>
-
-
-                                    <t t-else="">
                                     <option t-attf-value="{{account[0]}}">
                                         <t t-esc="account[1]"/>
                                     </option>
-                                    </t>
                                 </t>
                             </select>
                             <span id="account_res"></span>
@@ -250,22 +220,21 @@
                             </a>
                             <select id="entries" class="dropdown-menu target_move" name="states[]">
                                 <div role="separator" class="dropdown-divider"></div>
-                                <option value="Posted">Posted Entries</option>
+                                <option value="posted">Posted Entries</option>
                                 <option value="All">All Entries</option>
                             </select>
                             <span id="post_res"></span>
                         </div>
-                        <div style="">
-                            <button type="button" id="apply_filter" class="btn btn-primary"
-                                    style="top:0px;height:30px;color:white;background-color: #00A0AD;border-color: #00A0AD;">
-                                Apply
-                            </button>
+                    </div>
 
-                        </div>
-<!--                    </div>-->
+                </div>
+                <div style="">
+                    <button type="button" id="apply_filter" class="btn btn-primary"
+                            style="top:0px;height:30px;right:20px;position: absolute;color:white;background-color: #00A0AD;border-color: #00A0AD;">
+                        Apply
+                    </button>
 
-<!--                </div>-->
-
+                </div>
             </div>
         </div>
     </t>
@@ -281,6 +250,7 @@
                         <th>Account</th>
                         <th>Move</th>
                         <th>Entry Label</th>
+                        <th>Ref.</th>
                         <th style="text-align:right;">Debit</th>
                         <th style="text-align:right;">Credit</th>
                         <th style="text-align:right;">Balance</th>
@@ -327,6 +297,9 @@
                             </td>
                             <td t-att-style="styleleft">
                                 <t t-esc="account_line.lname"/>
+                            </td>
+                            <td t-att-style="styleleft">
+                                <t t-esc="account_line.ref"/>
                             </td>
                             <t t-if="account_line.currency_position == 'before'">
                                 <td t-att-style="style" class="amt">

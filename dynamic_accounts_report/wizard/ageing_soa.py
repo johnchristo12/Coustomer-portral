@@ -26,7 +26,7 @@ def excel_style(row, col):
 
 class AgeingView(models.TransientModel):
     _inherit = "account.common.report"
-    _name = 'account.partner.ageing'
+    _name = 'account.partner.ageing.soa'
 
     period_length = fields.Integer(string='Period Length (days)',
                                    required=True, default=30)
@@ -60,7 +60,7 @@ class AgeingView(models.TransientModel):
 
     @api.model
     def view_report(self, option):
-        r = self.env['account.partner.ageing'].search([('id', '=', option[0])])
+        r = self.env['account.partner.ageing.soa'].search([('id', '=', option[0])])
 
         data = {
             'result_selection': r.result_selection,
@@ -84,7 +84,7 @@ class AgeingView(models.TransientModel):
         currency = self._get_currency()
 
         return {
-            'name': "Partner Ageing",
+            'name': "Duty Partner Ageing",
             'type': 'ir.actions.client',
             'tag': 'p_a',
             'filters': filters,
@@ -130,7 +130,7 @@ class AgeingView(models.TransientModel):
         return filters
 
     def get_filter_data(self, option):
-        r = self.env['account.partner.ageing'].search([('id', '=', option[0])])
+        r = self.env['account.partner.ageing.soa'].search([('id', '=', option[0])])
         default_filters = {}
         company_id = self.env.company
         company_domain = [('company_id', '=', company_id.id)]
@@ -206,11 +206,23 @@ class AgeingView(models.TransientModel):
         res = super(AgeingView, self).write(vals)
         return res
 
+    def get_duty_vat_details(self, duty_product_ids, vat_product_ids, move_line):
+        duty_amount = 0.00
+        vat_amount = 0.00
+        for line in move_line.move_id.invoice_line_ids:
+            if line.product_id and line.product_id.id in duty_product_ids:
+                duty_amount += line.price_total
+            elif line.product_id and line.product_id.id in vat_product_ids:
+                vat_amount += line.price_total
+        return duty_amount, vat_amount
+
     def _get_partner_move_lines(self, data, partners, date_from, target_move,
                                 account_type,
                                 period_length):
 
         periods = {}
+        duty_product_ids = self.env.company.duty_product_ids.ids
+        vat_product_ids = self.env.company.vat_product_ids.ids
         start = datetime.strptime(date_from, "%Y-%m-%d")
         date_from = datetime.strptime(date_from, "%Y-%m-%d").date()
         for i in range(7)[::-1]:
@@ -218,10 +230,7 @@ class AgeingView(models.TransientModel):
                 stop = start - relativedelta(days=period_length)
                 period_name = str((7 - (i + 1)) * period_length + 1) + '-' + str(
                     (7 - i) * period_length)
-                if i == 6:
-                    period_stop = date_from
-                else:
-                    period_stop = (start - relativedelta(days=1)).strftime('%Y-%m-%d')
+                period_stop = (start - relativedelta(days=1)).strftime('%Y-%m-%d')
             elif i == 2:
                 stop = start - relativedelta(days=60)
                 period_name = '121-180'
@@ -320,72 +329,85 @@ class AgeingView(models.TransientModel):
             tuple(partner_ids), date_from, tuple(company_ids)))
         aml_ids = cr.fetchall()
         aml_ids = aml_ids and [x[0] for x in aml_ids] or []
-        # for line in self.env['account.move.line'].browse(aml_ids):
-        #     partner_id = line.partner_id.id or False
-        #     move_id = line.move_id.id
-        #     move_name = line.move_id.name
-        #     date_maturity = line.date
-        #     account_id = line.account_id.name
-        #     account_code = line.account_id.code
-        #     jrnl_id = line.journal_id.name
-        #     currency_id = line.company_id.currency_id.position
-        #     currency_symbol = line.company_id.currency_id.symbol
-        #
-        #     if partner_id not in undue_amounts:
-        #         undue_amounts[partner_id] = 0.00
-        #     if partner_id not in undue_paid_amount:
-        #         undue_paid_amount[partner_id] = 0.00
-        #     line_amount = ResCurrency._compute(line.company_id.currency_id,
-        #                                        user_currency, line.balance)
-        #     if user_currency.is_zero(line_amount):
-        #         continue
-        #     for partial_line in line.matched_debit_ids:
-        #         if partial_line.max_date <= date_from and partial_line.debit_move_id.move_id.state == 'posted' and \
-        #                     partial_line.credit_move_id.move_id.state == 'posted':
-        #             line_amount += ResCurrency._compute(
-        #                 partial_line.company_id.currency_id, user_currency,
-        #                 partial_line.amount)
-        #     for partial_line in line.matched_credit_ids:
-        #         if partial_line.max_date <= date_from and partial_line.debit_move_id.move_id.state == 'posted' and \
-        #                     partial_line.credit_move_id.move_id.state == 'posted':
-        #             line_amount -= ResCurrency._compute(
-        #                 partial_line.company_id.currency_id, user_currency,
-        #                 partial_line.amount)
-        #     if not self.env.company.currency_id.is_zero(line_amount):
-        #         paid_amount = 0.00
-        #         invoice_amount = 0.00
-        #         if line.account_id.user_type_id.type == 'receivable':
-        #             if line_amount < 0.00:
-        #                 paid_amount += line_amount
-        #                 undue_paid_amount[partner_id] += line_amount
-        #             # else:
-        #             #     undue_amounts[partner_id] += line_amount
-        #         elif line.account_id.user_type_id.type == 'payable':
-        #             if line_amount > 0.00:
-        #                 paid_amount += line_amount
-        #                 undue_paid_amount[partner_id] += line_amount
-        #             # else:
-        #             #     undue_amounts[partner_id] += line_amount
-        #         if round(invoice_amount, 3) != 0.00 or round(paid_amount, 3) != 0.00:
-        #             lines[partner_id].append({
-        #                 'line': line,
-        #                 'partner_id': partner_id,
-        #                 'move': move_name,
-        #                 'jrnl': jrnl_id,
-        #                 'currency': currency_id,
-        #                 'symbol': currency_symbol,
-        #                 'acc_name': account_id,
-        #                 'mov_id': move_id,
-        #                 'acc_code': account_code,
-        #                 'date': date_maturity,
-        #                 'amount': invoice_amount,
-        #                 'paid_amount': paid_amount,
-        #                 'period7': 7,
-        #             })
+        for line in self.env['account.move.line'].browse(aml_ids):
+            partner_id = line.partner_id.id or False
+            move_id = line.move_id.id
+            move_name = line.move_id.name
+            date_maturity = line.date
+            account_id = line.account_id.name
+            account_code = line.account_id.code
+            jrnl_id = line.journal_id.name
+            currency_id = line.company_id.currency_id.position
+            currency_symbol = line.company_id.currency_id.symbol
+
+            if partner_id not in undue_amounts:
+                undue_amounts[partner_id] = {
+                    'amount': 0.00,
+                    'duty_amount': 0.00,
+                    'vat_amount': 0.00}
+            if partner_id not in undue_paid_amount:
+                undue_paid_amount[partner_id] = 0.00
+            line_amount = ResCurrency._compute(line.company_id.currency_id,
+                                               user_currency, line.balance)
+            if user_currency.is_zero(line_amount):
+                continue
+            for partial_line in line.matched_debit_ids:
+                if partial_line.max_date <= date_from and partial_line.debit_move_id.move_id.state == 'posted' and \
+                            partial_line.credit_move_id.move_id.state == 'posted':
+                    line_amount += ResCurrency._compute(
+                        partial_line.company_id.currency_id, user_currency,
+                        partial_line.amount)
+            for partial_line in line.matched_credit_ids:
+                if partial_line.max_date <= date_from and partial_line.debit_move_id.move_id.state == 'posted' and \
+                            partial_line.credit_move_id.move_id.state == 'posted':
+                    line_amount -= ResCurrency._compute(
+                        partial_line.company_id.currency_id, user_currency,
+                        partial_line.amount)
+            if not self.env.company.currency_id.is_zero(line_amount):
+                paid_amount = 0.00
+                invoice_amount = 0.00
+                duty_amount, vat_amount = self.get_duty_vat_details(duty_product_ids, vat_product_ids, line)
+                if line.account_id.user_type_id.type == 'receivable':
+                    if line_amount < 0.00:
+                        paid_amount += line_amount
+                        undue_paid_amount[partner_id] += line_amount
+                    else:
+                        invoice_amount += line_amount
+                        undue_amounts[partner_id]['amount'] += line_amount
+                        undue_amounts[partner_id]['duty_amount'] += duty_amount
+                        undue_amounts[partner_id]['vat_amount'] += vat_amount
+                elif line.account_id.user_type_id.type == 'payable':
+                    if line_amount > 0.00:
+                        paid_amount += line_amount
+                        undue_paid_amount[partner_id] += line_amount
+                    else:
+                        invoice_amount += line_amount
+                        undue_amounts[partner_id]['amount'] += line_amount
+                        undue_amounts[partner_id]['duty_amount'] += duty_amount
+                        undue_amounts[partner_id]['vat_amount'] += vat_amount
+                lines[partner_id].append({
+                    'line': line,
+                    'partner_id': partner_id,
+                    'move': move_name,
+                    'jrnl': jrnl_id,
+                    'currency': currency_id,
+                    'symbol': currency_symbol,
+                    'acc_name': account_id,
+                    'mov_id': move_id,
+                    'acc_code': account_code,
+                    'date': date_maturity,
+                    'amount': invoice_amount,
+                    'paid_amount': paid_amount,
+                    'duty_amount': duty_amount,
+                    'vat_amount': vat_amount,
+                    'period7': 7,
+                })
 
         # Use one query per period and store results in history (a list variable)
         # Each history will contain: history[1] = {'<partner_id>': <partner_debit-credit>}
         history = []
+        duty_hist = []
+        vat_hist = []
         for i in range(7):
             args_list = (
                 tuple(move_state), tuple(account_type), tuple(partner_ids),)
@@ -420,6 +442,8 @@ class AgeingView(models.TransientModel):
             cr.execute(query, args_list)
 
             partners_amount = {}
+            duty_amount_dict = {}
+            vat_amount_dict = {}
             aml_ids = cr.fetchall()
             aml_ids = aml_ids and [x[0] for x in aml_ids] or []
             for line in self.env['account.move.line'].browse(aml_ids):
@@ -434,6 +458,8 @@ class AgeingView(models.TransientModel):
                 currency_symbol = line.company_id.currency_id.symbol
                 if partner_id not in partners_amount:
                     partners_amount[partner_id] = 0.0
+                    duty_amount_dict[partner_id] = 0.00
+                    vat_amount_dict[partner_id] = 0.00
                 if partner_id not in undue_paid_amount:
                     undue_paid_amount[partner_id] = 0.00
                 line_amount = ResCurrency._compute(line.company_id.currency_id,
@@ -460,7 +486,6 @@ class AgeingView(models.TransientModel):
                     if line.account_id.user_type_id.type == 'receivable':
                         if line_amount < 0.00:
                             paid_amount += line_amount
-                            print (paid_amount,">>>>>>>Paid Amount\n\n\n\n")
                         else:
                             invoice_amount += line_amount
                     elif line.account_id.user_type_id.type == 'payable':
@@ -470,6 +495,9 @@ class AgeingView(models.TransientModel):
                             invoice_amount += line_amount
                     partners_amount[partner_id] += invoice_amount
                     undue_paid_amount[partner_id] += paid_amount
+                    duty_amount, vat_amount = self.get_duty_vat_details(duty_product_ids, vat_product_ids, line)
+                    duty_amount_dict[partner_id] += duty_amount
+                    vat_amount_dict[partner_id] += vat_amount
                     if i + 1 == 7:
                         period7 = i + 1
                         lines[partner_id].append({
@@ -485,7 +513,9 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
                     elif i + 1 == 6:
                         period6 = i + 1
@@ -502,7 +532,9 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
                     elif i + 1 == 5:
                         period5 = i + 1
@@ -519,7 +551,9 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
                     elif i + 1 == 4:
                         period4 = i + 1
@@ -537,7 +571,9 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
                     elif i + 1 == 3:
                         period3 = i + 1
@@ -555,7 +591,9 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
                     elif i + 1 == 2:
                         period2 = i + 1
@@ -573,7 +611,9 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
                     else:
                         period1 = i + 1
@@ -591,10 +631,14 @@ class AgeingView(models.TransientModel):
                             'acc_code': account_code,
                             'date': date_maturity,
                             'amount': invoice_amount,
-                            'paid_amount': paid_amount
+                            'paid_amount': paid_amount,
+                            'duty_amount': duty_amount,
+                            'vat_amount': vat_amount
                         })
 
             history.append(partners_amount)
+            duty_hist.append(duty_amount_dict)
+            vat_hist.append(vat_amount_dict)
 
         for partner in partners:
             if partner['partner_id'] is None:
@@ -602,9 +646,13 @@ class AgeingView(models.TransientModel):
             at_least_one_amount = False
             values = {}
             undue_amt = 0.0
+            undue_duty_amount = 0.00
+            undue_vat_amount = 0.00
             paid_amount = 0.00
             if partner['partner_id'] in undue_amounts:  # Making sure this partner actually was found by the query
-                undue_amt = undue_amounts[partner['partner_id']]
+                undue_amt = undue_amounts[partner['partner_id']]['amount']
+                undue_duty_amount = undue_amounts[partner['partner_id']]['duty_amount']
+                undue_vat_amount = undue_amounts[partner['partner_id']]['vat_amount']
             if partner['partner_id'] in undue_paid_amount:
                 paid_amount = undue_paid_amount[partner['partner_id']]
                 if paid_amount != 0.00:
@@ -624,15 +672,23 @@ class AgeingView(models.TransientModel):
                 during = False
                 if partner['partner_id'] in history[i]:
                     during = [history[i][partner['partner_id']]]
+                    duty_during = [duty_hist[i][partner['partner_id']]]
+                    vat_during = [vat_hist[i][partner['partner_id']]]
                 # Adding counter
                 total[(i)] = total[(i)] + (during and during[0] or 0)
-                values[str(i)] = during and during[0] or 0.0
-                if not float_is_zero(values[str(i)],
+                values[str(i)] = {
+                    'amount': during and during[0] or 0.0,
+                    'duty_amount': duty_during and duty_during[0] or 0.00,
+                    'vat_amount': vat_during and vat_during[0] or 0.00
+                    }
+                if not float_is_zero(values[str(i)]['amount'],
                                      precision_rounding=self.env.company.currency_id.rounding):
                     at_least_one_amount = True
-            values['6'] += undue_amt
+            values['6']['amount'] += undue_amt
+            values['6']['duty_amount'] += undue_duty_amount
+            values['6']['vat_amount'] += undue_vat_amount
             values['total'] = sum(
-                [values['unalloc']] + [values['direction']] + [values[str(i)] for i in range(7)])
+                [values['unalloc']] + [values['direction']] + [values[str(i)]['amount'] for i in range(7)])
             ## Add for total
             total[(i + 1)] += values['total']
             values['partner_id'] = partner['partner_id']
@@ -729,57 +785,194 @@ class AgeingView(models.TransientModel):
         worksheet.set_column('H:H', 25)
         worksheet.set_column('I:I', 25)
         worksheet.set_column('J:J', 25)
+        worksheet.set_column('K:K', 25)
+        worksheet.set_column('L:L', 25)
+        worksheet.set_column('M:M', 25)
+        worksheet.set_column('N:N', 25)
+        worksheet.set_column('O:O', 25)
+        worksheet.set_column('P:P', 25)
+        worksheet.set_column('Q:Q', 25)
+        worksheet.set_column('R:R', 25)
+        worksheet.set_column('S:S', 25)
+        worksheet.set_column('T:T', 25)
+        worksheet.set_column('U:U', 25)
+        worksheet.set_column('V:V', 25)
+        worksheet.set_column('W:W', 25)
+        worksheet.set_column('X:X', 25)
+        worksheet.set_column('Y:Y', 25)
+        worksheet.set_column('Z:Z', 25)
         worksheet.write(row, 0, 'Partner', bold_center)
         worksheet.write(row, 1, 'Unallocated', bold_center)
-        worksheet.write(row, 2, '0-30', bold_center)
-        worksheet.write(row, 3, '31-60', bold_center)
-        worksheet.write(row, 4, '61-90', bold_center)
-        worksheet.write(row, 5, '91-120', bold_center)
-        worksheet.write(row, 6, '121-180', bold_center)
-        worksheet.write(row, 7, '181-365', bold_center)
-        worksheet.write(row, 8, '365+', bold_center)
-        worksheet.write(row, 9, 'Total', bold_center)
+        mg_from = excel_style(row + 1, 3)
+        mg_to = excel_style(row + 1, 5)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '0-30', bold_center)
+        mg_from = excel_style(row + 1, 6)
+        mg_to = excel_style(row + 1, 8)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '31-60', bold_center)
+        mg_from = excel_style(row + 1, 9)
+        mg_to = excel_style(row + 1, 11)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '61-90', bold_center)
+        mg_from = excel_style(row + 1, 12)
+        mg_to = excel_style(row + 1, 14)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '91-120', bold_center)
+        mg_from = excel_style(row + 1, 15)
+        mg_to = excel_style(row + 1, 17)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '121-180', bold_center)
+        mg_from = excel_style(row + 1, 18)
+        mg_to = excel_style(row + 1, 20)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '181-365', bold_center)
+        mg_from = excel_style(row + 1, 21)
+        mg_to = excel_style(row + 1, 23)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '365+', bold_center)
+        mg_from = excel_style(row + 1, 24)
+        mg_to = excel_style(row + 1, 26)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), 'Total', bold_center)
+        row += 1
+        worksheet.write(row, 2, 'Total', bold_center)
+        worksheet.write(row, 3, 'Duty Amount', bold_center)
+        worksheet.write(row, 4, 'Tax Amount', bold_center)
+        worksheet.write(row, 5, 'Total', bold_center)
+        worksheet.write(row, 6, 'Duty Amount', bold_center)
+        worksheet.write(row, 7, 'Tax Amount', bold_center)
+        worksheet.write(row, 8, 'Total', bold_center)
+        worksheet.write(row, 9, 'Duty Amount', bold_center)
+        worksheet.write(row, 10, 'Tax Amount', bold_center)
+        worksheet.write(row, 11, 'Total', bold_center)
+        worksheet.write(row, 12, 'Duty Amount', bold_center)
+        worksheet.write(row, 13, 'Tax Amount', bold_center)
+        worksheet.write(row, 14, 'Total', bold_center)
+        worksheet.write(row, 15, 'Duty Amount', bold_center)
+        worksheet.write(row, 16, 'Tax Amount', bold_center)
+        worksheet.write(row, 17, 'Total', bold_center)
+        worksheet.write(row, 18, 'Duty Amount', bold_center)
+        worksheet.write(row, 19, 'Tax Amount', bold_center)
+        worksheet.write(row, 20, 'Total', bold_center)
+        worksheet.write(row, 21, 'Duty Amount', bold_center)
+        worksheet.write(row, 22, 'Tax Amount', bold_center)
+        worksheet.write(row, 23, 'Total', bold_center)
+        worksheet.write(row, 24, 'Duty Amount', bold_center)
+        worksheet.write(row, 25, 'Tax Amount', bold_center)
         row += 1
         unall = 0.00
         due_30 = 0.00
+        due_30_duty = 0.00
+        due_30_vat = 0.00
         due_60 = 0.00
+        due_60_duty = 0.00
+        due_60_vat = 0.00
         due_90 = 0.00
+        due_90_duty = 0.00
+        due_90_vat = 0.00
         due_120 = 0.00
+        due_120_duty = 0.00
+        due_120_vat = 0.00
         due_180 = 0.00
+        due_180_duty = 0.00
+        due_180_vat = 0.00
         due_365 = 0.00
+        due_365_duty = 0.00
+        due_365_vat = 0.00
         due_365_plus = 0.00
+        due_365_p_duty = 0.00
+        due_365_p_vat = 0.00
         total = 0.00
+        total_duty = 0.00
+        total_vat = 0.00
         for rec_data in report_data_main[0]:
+            line_duty_total = 0.00
+            line_vat_total = 0.00
             worksheet.write(row, 0, rec_data['name'])
             worksheet.write_number(row, 1, rec_data['unalloc'], no_format)
-            worksheet.write_number(row, 2, rec_data['6'], no_format)
-            worksheet.write_number(row, 3, rec_data['5'], no_format)
-            worksheet.write_number(row, 4, rec_data['4'], no_format)
-            worksheet.write_number(row, 5, rec_data['3'], no_format)
-            worksheet.write_number(row, 6, rec_data['2'], no_format)
-            worksheet.write_number(row, 7, rec_data['1'], no_format)
-            worksheet.write_number(row, 8, rec_data['0'], no_format)
-            worksheet.write_number(row, 9, rec_data['total'], no_format)
+            worksheet.write_number(row, 2, rec_data['6']['amount'], no_format)
+            worksheet.write_number(row, 3, rec_data['6']['duty_amount'], no_format)
+            worksheet.write_number(row, 4, rec_data['6']['vat_amount'], no_format)
+            line_duty_total += rec_data['6']['duty_amount']
+            line_vat_total += rec_data['6']['vat_amount']
+            worksheet.write_number(row, 5, rec_data['5']['amount'], no_format)
+            worksheet.write_number(row, 6, rec_data['5']['duty_amount'], no_format)
+            worksheet.write_number(row, 7, rec_data['5']['vat_amount'], no_format)
+            line_duty_total += rec_data['5']['duty_amount']
+            line_vat_total += rec_data['5']['vat_amount']
+            worksheet.write_number(row, 8, rec_data['4']['amount'], no_format)
+            worksheet.write_number(row, 9, rec_data['4']['duty_amount'], no_format)
+            worksheet.write_number(row, 10, rec_data['4']['vat_amount'], no_format)
+            line_duty_total += rec_data['4']['duty_amount']
+            line_vat_total += rec_data['4']['vat_amount']
+            worksheet.write_number(row, 11, rec_data['3']['amount'], no_format)
+            worksheet.write_number(row, 12, rec_data['3']['duty_amount'], no_format)
+            worksheet.write_number(row, 13, rec_data['3']['vat_amount'], no_format)
+            line_duty_total += rec_data['3']['duty_amount']
+            line_vat_total += rec_data['3']['vat_amount']
+            worksheet.write_number(row, 14, rec_data['2']['amount'], no_format)
+            worksheet.write_number(row, 15, rec_data['2']['duty_amount'], no_format)
+            worksheet.write_number(row, 16, rec_data['2']['vat_amount'], no_format)
+            line_duty_total += rec_data['2']['duty_amount']
+            line_vat_total += rec_data['2']['vat_amount']
+            worksheet.write_number(row, 17, rec_data['1']['amount'], no_format)
+            worksheet.write_number(row, 18, rec_data['1']['duty_amount'], no_format)
+            worksheet.write_number(row, 19, rec_data['1']['vat_amount'], no_format)
+            line_duty_total += rec_data['1']['duty_amount']
+            line_vat_total += rec_data['1']['vat_amount']
+            worksheet.write_number(row, 20, rec_data['0']['amount'], no_format)
+            worksheet.write_number(row, 21, rec_data['0']['duty_amount'], no_format)
+            worksheet.write_number(row, 22, rec_data['0']['vat_amount'], no_format)
+            line_duty_total += rec_data['0']['duty_amount']
+            line_vat_total += rec_data['0']['vat_amount']
+            worksheet.write_number(row, 23, rec_data['total'], no_format)
+            worksheet.write_number(row, 24, line_duty_total, no_format)
+            worksheet.write_number(row, 25, line_vat_total, no_format)
             unall += rec_data['unalloc']
-            due_30 += rec_data['6']
-            due_60 += rec_data['5']
-            due_90 += rec_data['4']
-            due_120 += rec_data['3']
-            due_180 += rec_data['2']
-            due_365 += rec_data['1']
-            due_365_plus += rec_data['0']
+            due_30 += rec_data['6']['amount']
+            due_30_duty += rec_data['6']['duty_amount']
+            due_30_vat += rec_data['6']['vat_amount']
+            due_60 += rec_data['5']['amount']
+            due_60_duty += rec_data['5']['duty_amount']
+            due_60_vat += rec_data['5']['vat_amount']
+            due_90 += rec_data['4']['amount']
+            due_90_duty += rec_data['4']['duty_amount']
+            due_90_vat += rec_data['4']['vat_amount']
+            due_120 += rec_data['3']['amount']
+            due_120_duty += rec_data['3']['duty_amount']
+            due_120_vat += rec_data['3']['vat_amount']
+            due_180 += rec_data['2']['amount']
+            due_180_duty += rec_data['2']['duty_amount']
+            due_180_vat += rec_data['2']['vat_amount']
+            due_365 += rec_data['1']['amount']
+            due_365_duty += rec_data['1']['duty_amount']
+            due_365_vat += rec_data['1']['vat_amount']
+            due_365_plus += rec_data['0']['amount']
+            due_365_p_duty += rec_data['0']['duty_amount']
+            due_365_p_vat += rec_data['0']['vat_amount']
             total += rec_data['total']
+            total_duty += line_duty_total
+            total_vat += line_vat_total
             row += 1
         worksheet.write(row, 0, "Total", bold)
         worksheet.write_number(row, 1, unall, normal_num_bold)
         worksheet.write_number(row, 2, due_30, normal_num_bold)
-        worksheet.write_number(row, 3, due_60, normal_num_bold)
-        worksheet.write_number(row, 4, due_90, normal_num_bold)
-        worksheet.write_number(row, 5, due_120, normal_num_bold)
-        worksheet.write_number(row, 6, due_180, normal_num_bold)
-        worksheet.write_number(row, 7, due_365, normal_num_bold)
-        worksheet.write_number(row, 8, due_365_plus, normal_num_bold)
-        worksheet.write_number(row, 9, total, normal_num_bold)
+        worksheet.write_number(row, 3, due_30_duty, normal_num_bold)
+        worksheet.write_number(row, 4, due_30_vat, normal_num_bold)
+        worksheet.write_number(row, 5, due_60, normal_num_bold)
+        worksheet.write_number(row, 6, due_60_duty, normal_num_bold)
+        worksheet.write_number(row, 7, due_60_vat, normal_num_bold)
+        worksheet.write_number(row, 8, due_90, normal_num_bold)
+        worksheet.write_number(row, 9, due_90_duty, normal_num_bold)
+        worksheet.write_number(row, 10, due_90_vat, normal_num_bold)
+        worksheet.write_number(row, 11, due_120, normal_num_bold)
+        worksheet.write_number(row, 12, due_120_duty, normal_num_bold)
+        worksheet.write_number(row, 13, due_120_vat, normal_num_bold)
+        worksheet.write_number(row, 14, due_180, normal_num_bold)
+        worksheet.write_number(row, 15, due_180_duty, normal_num_bold)
+        worksheet.write_number(row, 16, due_180_vat, normal_num_bold)
+        worksheet.write_number(row, 17, due_365, normal_num_bold)
+        worksheet.write_number(row, 18, due_365_duty, normal_num_bold)
+        worksheet.write_number(row, 19, due_365_vat, normal_num_bold)
+        worksheet.write_number(row, 20, due_365_plus, normal_num_bold)
+        worksheet.write_number(row, 21, due_365_p_duty, normal_num_bold)
+        worksheet.write_number(row, 22, due_365_p_vat, normal_num_bold)
+        worksheet.write_number(row, 23, total, normal_num_bold)
+        worksheet.write_number(row, 24, total_duty, normal_num_bold)
+        worksheet.write_number(row, 25, total_vat, normal_num_bold)
         row += 5
         summ_from = excel_style(row + 1, 1)
         summ_to = excel_style(row + 1, 3)
@@ -860,38 +1053,102 @@ class AgeingView(models.TransientModel):
         worksheet.set_column('H:H', 25)
         worksheet.set_column('I:I', 25)
         worksheet.set_column('J:J', 25)
-        worksheet.set_column('K:J', 25)
-        worksheet.set_column('L:J', 25)
-        worksheet.set_column('M:J', 25)
+        worksheet.set_column('K:K', 25)
+        worksheet.set_column('L:L', 25)
+        worksheet.set_column('M:M', 25)
+        worksheet.set_column('N:N', 25)
+        worksheet.set_column('O:O', 25)
+        worksheet.set_column('P:P', 25)
+        worksheet.set_column('Q:Q', 25)
+        worksheet.set_column('R:R', 25)
+        worksheet.set_column('S:S', 25)
+        worksheet.set_column('T:T', 25)
+        worksheet.set_column('U:U', 25)
+        worksheet.set_column('V:V', 25)
+        worksheet.set_column('W:W', 25)
+        worksheet.set_column('X:X', 25)
+        worksheet.set_column('Y:Y', 25)
+        worksheet.set_column('Z:Z', 25)
         worksheet.write(row, 0, 'Entry Label', bold_center)
         worksheet.write(row, 1, 'Due Date', bold_center)
         worksheet.write(row, 2, 'Journal', bold_center)
         worksheet.write(row, 3, 'Account', bold_center)
         worksheet.write(row, 4, 'Unallocated', bold_center)
-        worksheet.write(row, 5, '0-30', bold_center)
-        worksheet.write(row, 6, '31-60', bold_center)
-        worksheet.write(row, 7, '61-90', bold_center)
-        worksheet.write(row, 8, '91-120', bold_center)
-        worksheet.write(row, 9, '121-180', bold_center)
-        worksheet.write(row, 10, '181-365', bold_center)
-        worksheet.write(row, 11, '365+', bold_center)
-        worksheet.write(row, 12, 'Total', bold_center)
+        mg_from = excel_style(row + 1, 6)
+        mg_to = excel_style(row + 1, 8)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '0-30', bold_center)
+        mg_from = excel_style(row + 1, 9)
+        mg_to = excel_style(row + 1, 11)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '31-60', bold_center)
+        mg_from = excel_style(row + 1, 12)
+        mg_to = excel_style(row + 1, 14)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '61-90', bold_center)
+        mg_from = excel_style(row + 1, 15)
+        mg_to = excel_style(row + 1, 17)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '91-120', bold_center)
+        mg_from = excel_style(row + 1, 18)
+        mg_to = excel_style(row + 1, 20)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '121-180', bold_center)
+        mg_from = excel_style(row + 1, 21)
+        mg_to = excel_style(row + 1, 23)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '181-365', bold_center)
+        mg_from = excel_style(row + 1, 24)
+        mg_to = excel_style(row + 1, 26)
+        worksheet.merge_range('%s:%s'%(mg_from, mg_to), '365+', bold_center)
+        row += 1
+        worksheet.write(row, 5, 'Total', bold_center)
+        worksheet.write(row, 6, 'Duty Amount', bold_center)
+        worksheet.write(row, 7, 'Tax Amount', bold_center)
+        worksheet.write(row, 8, 'Total', bold_center)
+        worksheet.write(row, 9, 'Duty Amount', bold_center)
+        worksheet.write(row, 10, 'Tax Amount', bold_center)
+        worksheet.write(row, 11, 'Total', bold_center)
+        worksheet.write(row, 12, 'Duty Amount', bold_center)
+        worksheet.write(row, 13, 'Tax Amount', bold_center)
+        worksheet.write(row, 14, 'Total', bold_center)
+        worksheet.write(row, 15, 'Duty Amount', bold_center)
+        worksheet.write(row, 16, 'Tax Amount', bold_center)
+        worksheet.write(row, 17, 'Total', bold_center)
+        worksheet.write(row, 18, 'Duty Amount', bold_center)
+        worksheet.write(row, 19, 'Tax Amount', bold_center)
+        worksheet.write(row, 20, 'Total', bold_center)
+        worksheet.write(row, 21, 'Duty Amount', bold_center)
+        worksheet.write(row, 22, 'Tax Amount', bold_center)
+        worksheet.write(row, 23, 'Total', bold_center)
+        worksheet.write(row, 24, 'Duty Amount', bold_center)
+        worksheet.write(row, 25, 'Tax Amount', bold_center)
         row += 1
         for rec_data in report_data_main[0]:
             partner_name = rec_data['name']
             partner_from = excel_style(row + 1, 1)
-            partner_to = excel_style(row + 1, 13)
+            partner_to = excel_style(row + 1, 26)
             worksheet.merge_range('%s:%s'%(partner_from, partner_to), partner_name, bold_center)
             row += 1
             part_unall = 0.00
             part_due_30 = 0.00
+            part_due_30_duty = 0.00
+            part_due_30_vat = 0.00
             part_due_60 = 0.00
+            part_due_60_duty = 0.00
+            part_due_60_vat = 0.00
             part_due_90 = 0.00
+            part_due_90_duty = 0.00
+            part_due_90_vat = 0.00
             part_due_120 = 0.00
+            part_due_120_duty = 0.00
+            part_due_120_vat = 0.00
             part_due_180 = 0.00
+            part_due_180_duty = 0.00
+            part_due_180_vat = 0.00
             part_due_365 = 0.00
+            part_due_365_duty = 0.00
+            part_due_365_vat = 0.00
             part_due_365_plus = 0.00
+            part_due_365_p_duty = 0.00
+            part_due_365_p_vat = 0.00
             part_total = 0.00
+            part_total_duty = 0.00
+            part_total_vat = 0.00
             for line_data in rec_data['child_lines']:
                 worksheet.write(row, 0, line_data.get('move'))
                 try:
@@ -909,150 +1166,114 @@ class AgeingView(models.TransientModel):
                     worksheet.write_number(row, 4, 0.00, no_format)
                 if line_data.get('period7'):
                     worksheet.write_number(row, 5, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 6, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 7, line_data.get('vat_amount'), no_format)
+                    part_due_30_duty += line_data.get('duty_amount')
+                    part_due_30_vat += line_data.get('vat_amount')
                     part_due_30 += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
                     worksheet.write_number(row, 5, 0.00, no_format)
+                    worksheet.write_number(row, 6, 0.00, no_format)
+                    worksheet.write_number(row, 7, 0.00, no_format)
                 if line_data.get('period6'):
-                    worksheet.write_number(row, 6, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 8, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 9, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 10, line_data.get('vat_amount'), no_format)
+                    part_due_60_duty += line_data.get('duty_amount')
+                    part_due_60_vat += line_data.get('vat_amount')
                     part_due_60 += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
-                    worksheet.write_number(row, 6, 0.00, no_format)
+                    worksheet.write_number(row, 8, 0.00, no_format)
+                    worksheet.write_number(row, 9, 0.00, no_format)
+                    worksheet.write_number(row, 10, 0.00, no_format)
                 if line_data.get('period5'):
-                    worksheet.write_number(row, 7, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 11, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 12, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 13, line_data.get('vat_amount'), no_format)
+                    part_due_90_duty += line_data.get('duty_amount')
+                    part_due_90_vat += line_data.get('vat_amount')
                     part_due_90 += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
-                    worksheet.write_number(row, 7, 0.00, no_format)
+                    worksheet.write_number(row, 11, 0.00, no_format)
+                    worksheet.write_number(row, 12, 0.00, no_format)
+                    worksheet.write_number(row, 13, 0.00, no_format)
                 if line_data.get('period4'):
-                    worksheet.write_number(row, 8, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 14, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 15, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 16, line_data.get('vat_amount'), no_format)
+                    part_due_120_duty += line_data.get('duty_amount')
+                    part_due_120_vat += line_data.get('vat_amount')
                     part_due_120 += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
-                    worksheet.write_number(row, 8, 0.00, no_format)
+                    worksheet.write_number(row, 14, 0.00, no_format)
+                    worksheet.write_number(row, 15, 0.00, no_format)
+                    worksheet.write_number(row, 16, 0.00, no_format)
                 if line_data.get('period3'):
-                    worksheet.write_number(row, 9, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 17, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 18, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 19, line_data.get('vat_amount'), no_format)
+                    part_due_180_duty += line_data.get('duty_amount')
+                    part_due_180_vat += line_data.get('vat_amount')
                     part_due_180 += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
-                    worksheet.write_number(row, 9, 0.00, no_format)
+                    worksheet.write_number(row, 17, 0.00, no_format)
+                    worksheet.write_number(row, 18, 0.00, no_format)
+                    worksheet.write_number(row, 19, 0.00, no_format)
                 if line_data.get('period2'):
-                    worksheet.write_number(row, 10, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 20, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 21, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 22, line_data.get('vat_amount'), no_format)
+                    part_due_365_duty += line_data.get('duty_amount')
+                    part_due_365_vat += line_data.get('vat_amount')
                     part_due_365 += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
-                    worksheet.write_number(row, 10, 0.00, no_format)
+                    worksheet.write_number(row, 20, 0.00, no_format)
+                    worksheet.write_number(row, 21, 0.00, no_format)
+                    worksheet.write_number(row, 22, 0.00, no_format)
                 if line_data.get('period1'):
-                    worksheet.write_number(row, 11, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 23, line_data.get('amount'), no_format)
+                    worksheet.write_number(row, 24, line_data.get('duty_amount'), no_format)
+                    worksheet.write_number(row, 25, line_data.get('vat_amount'), no_format)
+                    part_due_365_p_duty += line_data.get('duty_amount')
+                    part_due_365_p_vat += line_data.get('vat_amount')
                     part_due_365_plus += line_data.get('amount')
                     line_total += line_data.get('amount')
                 else:
-                    worksheet.write_number(row, 11, 0.00, no_format)
-                worksheet.write_number(row, 12, line_total, no_format)
+                    worksheet.write_number(row, 23, 0.00, no_format)
+                    worksheet.write_number(row, 24, 0.00, no_format)
+                    worksheet.write_number(row, 25, 0.00, no_format)
                 part_total += line_total
                 row += 1
             worksheet.write(row, 0, "Total", bold)
             worksheet.write_number(row, 4, part_unall, normal_num_bold)
             worksheet.write_number(row, 5, part_due_30, normal_num_bold)
-            worksheet.write_number(row, 6, part_due_60, normal_num_bold)
-            worksheet.write_number(row, 7, part_due_90, normal_num_bold)
-            worksheet.write_number(row, 8, part_due_120, normal_num_bold)
-            worksheet.write_number(row, 9, part_due_180, normal_num_bold)
-            worksheet.write_number(row, 10, part_due_365, normal_num_bold)
-            worksheet.write_number(row, 11, part_due_365_plus, normal_num_bold)
-            worksheet.write_number(row, 12, part_total, normal_num_bold)
+            worksheet.write_number(row, 6, part_due_30_duty, normal_num_bold)
+            worksheet.write_number(row, 7, part_due_30_vat, normal_num_bold)
+            worksheet.write_number(row, 8, part_due_60, normal_num_bold)
+            worksheet.write_number(row, 9, part_due_60_duty, normal_num_bold)
+            worksheet.write_number(row, 10, part_due_60_vat, normal_num_bold)
+            worksheet.write_number(row, 11, part_due_90, normal_num_bold)
+            worksheet.write_number(row, 12, part_due_90_duty, normal_num_bold)
+            worksheet.write_number(row, 13, part_due_90_vat, normal_num_bold)
+            worksheet.write_number(row, 14, part_due_120, normal_num_bold)
+            worksheet.write_number(row, 15, part_due_120_duty, normal_num_bold)
+            worksheet.write_number(row, 16, part_due_120_vat, normal_num_bold)
+            worksheet.write_number(row, 17, part_due_180, normal_num_bold)
+            worksheet.write_number(row, 18, part_due_180_duty, normal_num_bold)
+            worksheet.write_number(row, 19, part_due_180_vat, normal_num_bold)
+            worksheet.write_number(row, 20, part_due_365, normal_num_bold)
+            worksheet.write_number(row, 21, part_due_365_duty, normal_num_bold)
+            worksheet.write_number(row, 22, part_due_365_vat, normal_num_bold)
+            worksheet.write_number(row, 23, part_due_365_plus, normal_num_bold)
+            worksheet.write_number(row, 24, part_due_365_p_duty, normal_num_bold)
+            worksheet.write_number(row, 25, part_due_365_p_vat, normal_num_bold)
             row += 1
-        # sheet.write(row, col, 'Entry Label', sub_heading)
-        #     sheet.write(row, col + 1, 'Due Date', sub_heading)
-        #     sheet.write(row, col + 2, 'Journal', sub_heading)
-        #     sheet.write(row, col + 3, 'Account', sub_heading)
-        #     sheet.write(row, col + 4, 'Not Due', sub_heading)
-        #     sheet.write(row, col + 5, '0 - 30', sub_heading)
-        #     sheet.write(row, col + 6, '30 - 60', sub_heading)
-        #     sheet.write(row, col + 7, '60 - 90', sub_heading)
-        #     sheet.write(row, col + 8, '90 - 120', sub_heading)
-        #     sheet.write(row, col + 9, '120 +', sub_heading)
-        
-        
-        # sheet.merge_range('A7:C7', 'Partner', heading)
-        # sheet.write('D7', 'Total', heading)
-        # sheet.write('E7', 'Not Due', heading)
-        # sheet.write('F7', '0-30', heading)
-        # sheet.write('G7', '30-60', heading)
-        # sheet.write('H7', '60-90', heading)
-        # sheet.write('I7', '90-120', heading)
-        # sheet.write('J7', '120+', heading)
-        #
-        # lst = []
-        # for rec in report_data_main[0]:
-        #     lst.append(rec)
-        # row = 6
-        # col = 0
-        # sheet.set_column(5, 0, 15)
-        # sheet.set_column(6, 1, 15)
-        # sheet.set_column(7, 2, 15)
-        # sheet.set_column(8, 3, 15)
-        # sheet.set_column(9, 4, 15)
-        # sheet.set_column(10, 5, 15)
-        # sheet.set_column(11, 6, 15)
-        #
-        # for rec_data in report_data_main[0]:
-        #     one_lst = []
-        #     two_lst = []
-        #
-        #     row += 1
-        #     sheet.merge_range(row, col, row, col + 2, rec_data['name'], txt_l)
-        #     sheet.write(row, col + 3, rec_data['total'], txt_l)
-        #     sheet.write(row, col + 4, rec_data['direction'], txt_l)
-        #     sheet.write(row, col + 5, rec_data['4'], txt_l)
-        #     sheet.write(row, col + 6, rec_data['3'], txt_l)
-        #     sheet.write(row, col + 7, rec_data['2'], txt_l)
-        #     sheet.write(row, col + 8, rec_data['1'], txt_l)
-        #     sheet.write(row, col + 9, rec_data['0'], txt_l)
-        #     row += 1
-        #     sheet.write(row, col, 'Entry Label', sub_heading)
-        #     sheet.write(row, col + 1, 'Due Date', sub_heading)
-        #     sheet.write(row, col + 2, 'Journal', sub_heading)
-        #     sheet.write(row, col + 3, 'Account', sub_heading)
-        #     sheet.write(row, col + 4, 'Not Due', sub_heading)
-        #     sheet.write(row, col + 5, '0 - 30', sub_heading)
-        #     sheet.write(row, col + 6, '30 - 60', sub_heading)
-        #     sheet.write(row, col + 7, '60 - 90', sub_heading)
-        #     sheet.write(row, col + 8, '90 - 120', sub_heading)
-        #     sheet.write(row, col + 9, '120 +', sub_heading)
-        #
-        #     for line_data in rec_data['child_lines']:
-        #         row += 1
-        #         sheet.write(row, col, line_data.get('move'), txt)
-        #         sheet.write(row, col + 1, line_data.get('date'), txt)
-        #         sheet.write(row, col + 2, line_data.get('jrnl'), txt)
-        #         sheet.write(row, col + 3, line_data.get('acc_code'), txt)
-        #         if line_data.get('period6'):
-        #             sheet.write(row, col + 4, line_data.get('amount'), txt)
-        #         else:
-        #             sheet.write(row, col + 4, "0", txt_v)
-        #         if line_data.get('period5'):
-        #             sheet.write(row, col + 5, line_data.get('amount'), txt)
-        #         else:
-        #             sheet.write(row, col + 5, "0", txt_v)
-        #         if line_data.get('period4'):
-        #             sheet.write(row, col + 6, line_data.get('amount'), txt)
-        #         else:
-        #             sheet.write(row, col + 6, "0", txt_v)
-        #         if line_data.get('period3'):
-        #             sheet.write(row, col + 7, line_data.get('amount'), txt)
-        #         else:
-        #             sheet.write(row, col + 7, "0", txt_v)
-        #         if line_data.get('period2'):
-        #             sheet.write(row, col + 8, line_data.get('amount'), txt)
-        #         else:
-        #             sheet.write(row, col + 8, "0", txt_v)
-        #         if line_data.get('period1'):
-        #             sheet.write(row, col + 9, line_data.get('amount'), txt)
-        #         else:
-        #             sheet.write(row, col + 9, "0", txt_v)
-
         workbook.close()
         output.seek(0)
         response.stream.write(output.read())

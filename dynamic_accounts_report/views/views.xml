@@ -31,6 +31,13 @@
         </record>
         <menuitem id="menu_report_ageing"  action="action_ageing_partner"
               name="Partner Ageing" parent="dynamic_report_accounting"/>
+        
+        <record id="action_ageing_partner_soa" model="ir.actions.client">
+            <field name="name">Duty Partner Ageing</field>
+            <field name="tag">p_a_soa</field>
+        </record>
+        <menuitem id="menu_report_ageing_soa"  action="action_ageing_partner_soa"
+              name="Duty Partner Ageing" parent="dynamic_report_accounting"/>
 
         <record id="action_day_book" model="ir.actions.client">
             <field name="name">Day Book</field>

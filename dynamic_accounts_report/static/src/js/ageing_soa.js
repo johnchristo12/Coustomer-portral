@@ -1,4 +1,4 @@
-odoo.define('dynamic_accounts_report.ageing', function (require) {
+odoo.define('dynamic_accounts_report.ageing_soa', function (require) {
     'use strict';
     var AbstractAction = require('web.AbstractAction');
     var core = require('web.core');
@@ -11,8 +11,8 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
     var _t = core._t;
 
     window.click_num = 0;
-    var PartnerAgeing = AbstractAction.extend({
-    template: 'AgeingTemp',
+    var PartnerAgeingSOA = AbstractAction.extend({
+    template: 'AgeingTempSOA',
         events: {
             'click .parent-line': 'journal_line_click',
             'click .child_col1': 'journal_line_click',
@@ -37,7 +37,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
             var self = this;
             self.initial_render = true;
             rpc.query({
-                model: 'account.partner.ageing',
+                model: 'account.partner.ageing.soa',
                 method: 'create',
                 args: [{
 
@@ -58,19 +58,36 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
                 try{
                     var self = this;
                     self._rpc({
-                        model: 'account.partner.ageing',
+                        model: 'account.partner.ageing.soa',
                         method: 'view_report',
                         args: [[this.wizard_id]],
                     }).then(function(datas) {
                     _.each(datas['report_lines'][0], function(rep_lines) {
                             rep_lines.total = self.format_currency(datas['currency'],rep_lines.total);
-                            rep_lines[6] = self.format_currency(datas['currency'],rep_lines[6]);
-                            rep_lines[5] = self.format_currency(datas['currency'],rep_lines[5]);
-                            rep_lines[4] = self.format_currency(datas['currency'],rep_lines[4]);
-                            rep_lines[3] = self.format_currency(datas['currency'],rep_lines[3]);
-                            rep_lines[2] = self.format_currency(datas['currency'],rep_lines[2]);
-                            rep_lines[1] = self.format_currency(datas['currency'],rep_lines[1]);
-                            rep_lines[0] = self.format_currency(datas['currency'],rep_lines[0]);
+                            rep_lines[6]['amount'] = self.format_currency(datas['currency'],rep_lines[6]['amount']);
+                            rep_lines[5]['amount'] = self.format_currency(datas['currency'],rep_lines[5]['amount']);
+                            rep_lines[4]['amount'] = self.format_currency(datas['currency'],rep_lines[4]['amount']);
+                            rep_lines[3]['amount'] = self.format_currency(datas['currency'],rep_lines[3]['amount']);
+                            rep_lines[2]['amount'] = self.format_currency(datas['currency'],rep_lines[2]['amount']);
+                            rep_lines[1]['amount'] = self.format_currency(datas['currency'],rep_lines[1]['amount']);
+                            rep_lines[0]['amount'] = self.format_currency(datas['currency'],rep_lines[0]['amount']);
+                            
+                            
+                            rep_lines[6]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[6]['duty_amount']);
+                            rep_lines[5]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[5]['duty_amount']);
+                            rep_lines[4]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[4]['duty_amount']);
+                            rep_lines[3]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[3]['duty_amount']);
+                            rep_lines[2]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[2]['duty_amount']);
+                            rep_lines[1]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[1]['duty_amount']);
+                            rep_lines[0]['duty_amount'] = self.format_currency(datas['currency'],rep_lines[0]['duty_amount']);
+                            
+                            rep_lines[6]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[6]['vat_amount']);
+                            rep_lines[5]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[5]['vat_amount']);
+                            rep_lines[4]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[4]['vat_amount']);
+                            rep_lines[3]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[3]['vat_amount']);
+                            rep_lines[2]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[2]['vat_amount']);
+                            rep_lines[1]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[1]['vat_amount']);
+                            rep_lines[0]['vat_amount'] = self.format_currency(datas['currency'],rep_lines[0]['vat_amount']);
 
                             rep_lines['direction'] = self.format_currency(datas['currency'],rep_lines['direction']);
                             rep_lines['unalloc'] = self.format_currency(datas['currency'],rep_lines['unalloc']);
@@ -78,11 +95,11 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
                              });
 
                             if (initial_render) {
-                                    self.$('.filter_view_tb').html(QWeb.render('AgeingFilterView', {
+                                    self.$('.filter_view_tb').html(QWeb.render('AgeingFilterViewSOA', {
                                         filter_data: datas['filters'],
                                     }));
                                     self._rpc({
-                                                model: 'account.partner.ageing',
+                                                model: 'account.partner.ageing.soa',
                                                 method: 'get_partners',
                                                 //args: [[this.wizard_id]],
                                             }).then(function(datas) {
@@ -127,7 +144,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
                             }
                             var child=[];
 
-                        self.$('.table_view_tb').html(QWeb.render('Ageingtable', {
+                        self.$('.table_view_tb').html(QWeb.render('AgeingtableSOA', {
 
                                             report_lines : datas['report_lines'],
                                             move_lines :datas['report_lines'][2],
@@ -168,7 +185,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
 
             var self = this;
             self._rpc({
-                model: 'account.partner.ageing',
+                model: 'account.partner.ageing.soa',
                 method: 'view_report',
                 args: [
                     [self.wizard_id]
@@ -177,18 +194,18 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
                 var action = {
                     'type': 'ir.actions.report',
                     'report_type': 'qweb-pdf',
-                    'report_name': 'dynamic_accounts_report.partner_ageing',
-                    'report_file': 'dynamic_accounts_report.partner_ageing',
+                    'report_name': 'dynamic_accounts_report.partner_ageing_soa',
+                    'report_file': 'dynamic_accounts_report.partner_ageing_soa',
                     'data': {
                         'report_data': data
                     },
                     'context': {
-                        'active_model': 'account.partner.ageing',
+                        'active_model': 'account.partner.ageing.soa',
                         'landscape': 1,
                         'ageing_pdf_report': true
 
                     },
-                    'display_name': 'Partner Ageing',
+                    'display_name': 'Duty Partner Ageing',
                 };
 
                 return self.do_action(action);
@@ -200,7 +217,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
         print_xlsx: function() {
             var self = this;
             self._rpc({
-                model: 'account.partner.ageing',
+                model: 'account.partner.ageing.soa',
                 method: 'view_report',
                 args: [
                     [self.wizard_id]
@@ -210,11 +227,11 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
                 var action = {
                     'type': 'ir_actions_dynamic_xlsx_download',
                     'data': {
-                         'model': 'account.partner.ageing',
+                         'model': 'account.partner.ageing.soa',
                          'options': JSON.stringify(data['filters']),
                          'output_format': 'xlsx',
                          'report_data': JSON.stringify(data['report_lines']),
-                         'report_name': 'Partner Ageing',
+                         'report_name': 'Duty Partner Ageing',
                          'dfr_data': JSON.stringify(data),
                     },
                 };
@@ -280,7 +297,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
             if (td.length == 1) {
 
                     self._rpc({
-                        model: 'account.partner.ageing',
+                        model: 'account.partner.ageing.soa',
                         method: 'view_report',
                         args: [
                             [self.wizard_id]
@@ -301,7 +318,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
                     if (account_id == data['report_lines'][0][i]['partner_id'] ){
                     $(event.currentTarget).next('tr').find('td .gl-table-div').remove();
                     $(event.currentTarget).next('tr').find('td ul').after(
-                        QWeb.render('SubSectional', {
+                        QWeb.render('SubSectionalSOA', {
                             account_data: data['report_lines'][0][i]['child_lines'],
                         }))
                     $(event.currentTarget).next('tr').find('td ul li:first a').css({
@@ -430,7 +447,7 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
 
 
             rpc.query({
-                model: 'account.partner.ageing',
+                model: 'account.partner.ageing.soa',
                 method: 'write',
                 args: [
                     self.wizard_id, filter_data_selected
@@ -442,6 +459,6 @@ odoo.define('dynamic_accounts_report.ageing', function (require) {
         },
 
     });
-    core.action_registry.add("p_a", PartnerAgeing);
-    return PartnerAgeing;
+    core.action_registry.add("p_a_soa", PartnerAgeingSOA);
+    return PartnerAgeingSOA;
 });
